@@ -8,7 +8,7 @@ import BrandingSlide from '../components/BrandingSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
 
 const SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
-const SLIDE_DURATION = 8000
+const SLIDE_DURATION = 14000
 
 export default function Dashboard() {
   const [active, setActive] = useState(0)

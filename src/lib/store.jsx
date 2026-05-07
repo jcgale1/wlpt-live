@@ -11,11 +11,15 @@ function generateDummyData() {
     [0, 3], [1, 5], [2, 4],
   ]
 
+  const PADEL_SCORES = [[6,0],[6,1],[6,2],[6,3],[6,4],[7,5],[7,6]]
+
   matchups.forEach(([a, b], i) => {
     const t1 = TEAMS[a]
     const t2 = TEAMS[b]
-    const gamesWon1 = Math.floor(Math.random() * 3)
-    const gamesWon2 = Math.floor(Math.random() * 3)
+    const score = PADEL_SCORES[Math.floor(Math.random() * PADEL_SCORES.length)]
+    const t1Wins = Math.random() > 0.5
+    const gamesWon1 = t1Wins ? score[0] : score[1]
+    const gamesWon2 = t1Wins ? score[1] : score[0]
 
     const playerStats = {}
     ;[...t1.players, ...t2.players].forEach(name => {
@@ -33,7 +37,7 @@ function generateDummyData() {
       team2Id: t2.id,
       team1Score: gamesWon1,
       team2Score: gamesWon2,
-      winner: gamesWon1 > gamesWon2 ? t1.id : t2.id,
+      winner: t1Wins ? t1.id : t2.id,
       playerStats,
       timestamp: new Date(2026, 4, 8, 9 + i, 0).toISOString(),
     })
@@ -102,7 +106,7 @@ function reducer(state, action) {
   }
 }
 
-const STORAGE_KEY = 'wlpt-matches-v2'
+const STORAGE_KEY = 'wlpt-matches-v3'
 
 function loadMatches() {
   try {

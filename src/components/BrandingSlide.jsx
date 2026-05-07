@@ -32,7 +32,7 @@ export default function BrandingSlide() {
           url="https://www.instagram.com/padx.ai/"
           delay={0.4}
           color="#E60150"
-          logo="/logos/padx_logo.svg"
+          logo="/logos/padx-mark.svg"
         />
       </div>
 
