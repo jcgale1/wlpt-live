@@ -184,7 +184,7 @@ export default function Dashboard() {
           Powered by
         </span>
         <img
-          src="/logos/padx-logo-white.svg"
+          src={logoPulse ? '/logos/padx-logo-pink.svg' : '/logos/padx-logo-white.svg'}
           alt="PadX"
           style={{
             height: 16,
