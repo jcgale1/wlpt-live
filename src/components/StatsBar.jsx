@@ -19,7 +19,7 @@ export default function StatsBar() {
       <Divider />
       <Stat label="Winners" value={totalWinners} color="#4ade80" />
       <Divider />
-      <Stat label="Distance" value={`${totalDistance.toFixed(1)}km`} color="#a78bfa" />
+      <Stat label="Distance" value={`${totalDistance.toFixed(1)}km`} color="#60a5fa" />
     </div>
   )
 }

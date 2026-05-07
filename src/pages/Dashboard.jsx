@@ -31,6 +31,13 @@ export default function Dashboard() {
   }, [resetTimer])
 
   const ActiveSlide = SLIDES[active]
+  const [logoPulse, setLogoPulse] = useState(false)
+
+  useEffect(() => {
+    setLogoPulse(true)
+    const t = setTimeout(() => setLogoPulse(false), 800)
+    return () => clearTimeout(t)
+  }, [active])
 
   return (
     <div style={{
@@ -175,12 +182,22 @@ export default function Dashboard() {
       }}>
         <span style={{
           fontSize: 9, fontFamily: '"DM Mono", monospace',
-          color: 'rgba(255,255,255,0.3)',
+          color: '#E60150',
           textTransform: 'uppercase', letterSpacing: 1,
         }}>
           Powered by
         </span>
-        <img src="/logos/padx-logo-white.svg" alt="PadX" style={{ height: 16, opacity: 0.5 }} />
+        <img
+          src="/logos/padx-logo-white.svg"
+          alt="PadX"
+          style={{
+            height: 16,
+            opacity: logoPulse ? 1 : 0.6,
+            transform: logoPulse ? 'scale(1.35)' : 'scale(1)',
+            transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            filter: logoPulse ? 'drop-shadow(0 0 8px rgba(230,1,80,0.5))' : 'none',
+          }}
+        />
       </footer>
 
       <style>{`

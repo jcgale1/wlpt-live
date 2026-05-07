@@ -69,12 +69,12 @@ export default function MatchFeedSlide() {
                 }}>
                   <span style={{
                     fontSize: 22, fontWeight: 800, fontFamily: '"Barlow Condensed", sans-serif',
-                    color: t1Won ? '#E60150' : 'rgba(255,255,255,0.4)',
+                    color: match.team1Score === match.team2Score ? '#C0C0C0' : t1Won ? '#4ade80' : '#f87171',
                   }}>{match.team1Score}</span>
                   <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontWeight: 300 }}>-</span>
                   <span style={{
                     fontSize: 22, fontWeight: 800, fontFamily: '"Barlow Condensed", sans-serif',
-                    color: !t1Won ? '#E60150' : 'rgba(255,255,255,0.4)',
+                    color: match.team1Score === match.team2Score ? '#C0C0C0' : !t1Won ? '#4ade80' : '#f87171',
                   }}>{match.team2Score}</span>
                 </div>
 

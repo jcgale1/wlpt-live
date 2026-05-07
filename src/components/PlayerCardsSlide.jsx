@@ -75,10 +75,10 @@ export default function PlayerCardsSlide() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 4px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <MiniStat label="Matches Won" value={entry.matchesWon} color="#E60150" />
-                <MiniStat label="Winners" value={entry.winners} color="#4ade80" />
+                <MiniStat label="Matches Won" value={entry.matchesWon} color="#4ade80" />
+                <MiniStat label="Winners" value={entry.winners} color="#E60150" />
                 <MiniStat label="Errors" value={entry.errors} color="#f87171" />
-                <MiniStat label="Distance" value={`${entry.distance.toFixed(1)}km`} color="#a78bfa" />
+                <MiniStat label="Distance" value={`${entry.distance.toFixed(1)}km`} color="#60a5fa" />
               </div>
             </motion.div>
           )
