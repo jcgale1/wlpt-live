@@ -22,6 +22,7 @@ export default function BrandingSlide() {
           url="https://www.instagram.com/worldlegendspadeltour/"
           delay={0.2}
           color="#fff"
+          logo="/logos/wlpt-mark.svg"
         />
         <QRBlock
           label="PadX"
@@ -29,6 +30,7 @@ export default function BrandingSlide() {
           url="https://www.instagram.com/padx.ai/"
           delay={0.4}
           color="#E60150"
+          logo="/logos/padx_logo.svg"
         />
       </div>
 
@@ -73,7 +75,7 @@ export default function BrandingSlide() {
   )
 }
 
-function QRBlock({ label, handle, url, delay, color }) {
+function QRBlock({ label, handle, url, delay, color, logo }) {
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
@@ -106,7 +108,19 @@ function QRBlock({ label, handle, url, delay, color }) {
           background: 'radial-gradient(circle at 50% 50%, rgba(230,1,80,0.06) 0%, transparent 70%)',
         }} />
         <div style={{ background: '#fff', borderRadius: 10, padding: 8, position: 'relative' }}>
-          <QRCodeSVG value={url} size={110} level="H" bgColor="#ffffff" fgColor="#040406" />
+          <QRCodeSVG
+            value={url}
+            size={110}
+            level="H"
+            bgColor="#ffffff"
+            fgColor="#040406"
+            imageSettings={{
+              src: logo,
+              height: 24,
+              width: 24,
+              excavate: true,
+            }}
+          />
         </div>
       </div>
     </motion.div>
