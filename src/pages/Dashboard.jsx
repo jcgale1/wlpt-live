@@ -189,9 +189,11 @@ export default function Dashboard() {
           style={{
             height: 16,
             opacity: logoPulse ? 1 : 0.6,
-            transform: logoPulse ? 'scale(1.35)' : 'scale(1)',
-            transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-            filter: logoPulse ? 'drop-shadow(0 0 8px rgba(230,1,80,0.5))' : 'none',
+            transform: logoPulse ? 'scale(2)' : 'scale(1)',
+            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            filter: logoPulse
+              ? 'drop-shadow(0 0 6px #E60150) drop-shadow(0 0 16px #E60150) drop-shadow(0 0 30px rgba(230,1,80,0.5))'
+              : 'none',
           }}
         />
       </footer>
