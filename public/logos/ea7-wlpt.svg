@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" fill="none">
+  <rect width="360" height="80" rx="6" fill="#000"/>
+  <defs>
+    <clipPath id="stripes">
+      <rect x="0" y="0" width="360" height="10"/>
+      <rect x="0" y="13" width="360" height="10"/>
+      <rect x="0" y="26" width="360" height="10"/>
+      <rect x="0" y="39" width="360" height="10"/>
+      <rect x="0" y="52" width="360" height="10"/>
+      <rect x="0" y="65" width="360" height="10"/>
+      <rect x="0" y="78" width="360" height="10"/>
+    </clipPath>
+  </defs>
+  <text x="20" y="60" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="54" fill="#fff" letter-spacing="2" clip-path="url(#stripes)">EA7</text>
+  <text x="155" y="60" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-style="italic" font-size="50" fill="#fff" letter-spacing="6">WLPT</text>
+</svg>

@@ -22,7 +22,9 @@ export default function BrandingSlide() {
           url="https://www.instagram.com/worldlegendspadeltour/"
           delay={0.2}
           color="#fff"
-          logo="/logos/wlpt-mark.svg"
+          logo="/logos/ea7-wlpt.svg"
+          logoWidth={44}
+          logoHeight={10}
         />
         <QRBlock
           label="PadX"
@@ -75,7 +77,7 @@ export default function BrandingSlide() {
   )
 }
 
-function QRBlock({ label, handle, url, delay, color, logo }) {
+function QRBlock({ label, handle, url, delay, color, logo, logoWidth, logoHeight }) {
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
@@ -116,8 +118,8 @@ function QRBlock({ label, handle, url, delay, color, logo }) {
             fgColor="#040406"
             imageSettings={{
               src: logo,
-              height: 24,
-              width: 24,
+              height: logoHeight || 24,
+              width: logoWidth || 24,
               excavate: true,
             }}
           />
