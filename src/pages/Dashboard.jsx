@@ -208,16 +208,15 @@ export default function Dashboard() {
             Built by
           </span>
           <span style={{
-            fontFamily: '"Barlow Condensed", sans-serif',
-            fontSize: 13, fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: 2,
+            fontFamily: '"DM Mono", monospace',
+            fontSize: 11, letterSpacing: 0.5,
             opacity: logoPulse ? 1 : 0.5,
             color: logoPulse ? '#fff' : 'rgba(255,255,255,0.6)',
             transform: logoPulse ? 'scale(1.15)' : 'scale(1)',
             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
             display: 'inline-block',
           }}>
-            Genius Digital
+            genius-digital.net
           </span>
         </div>
       </footer>
