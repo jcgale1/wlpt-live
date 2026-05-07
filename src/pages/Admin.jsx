@@ -29,7 +29,7 @@ export default function Admin() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{
           fontFamily: '"Barlow Condensed", sans-serif', fontSize: 22, fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: 3, color: '#22D3EE', margin: 0,
+          textTransform: 'uppercase', letterSpacing: 3, color: '#E60150', margin: 0,
         }}>
           Match Admin
         </h2>
@@ -264,11 +264,11 @@ function MatchHistory() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
               <TeamBadge teamId={m.team1Id} size={24} showNames={false} />
-              <span style={{ fontSize: 16, fontWeight: 700, fontFamily: '"Barlow Condensed"', color: m.winner === m.team1Id ? '#22D3EE' : 'rgba(255,255,255,0.4)' }}>
+              <span style={{ fontSize: 16, fontWeight: 700, fontFamily: '"Barlow Condensed"', color: m.winner === m.team1Id ? '#E60150' : 'rgba(255,255,255,0.4)' }}>
                 {m.team1Score}
               </span>
               <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>vs</span>
-              <span style={{ fontSize: 16, fontWeight: 700, fontFamily: '"Barlow Condensed"', color: m.winner === m.team2Id ? '#22D3EE' : 'rgba(255,255,255,0.4)' }}>
+              <span style={{ fontSize: 16, fontWeight: 700, fontFamily: '"Barlow Condensed"', color: m.winner === m.team2Id ? '#E60150' : 'rgba(255,255,255,0.4)' }}>
                 {m.team2Score}
               </span>
               <TeamBadge teamId={m.team2Id} size={24} showNames={false} />

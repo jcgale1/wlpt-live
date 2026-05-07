@@ -19,7 +19,7 @@ export default function LeaderboardSlide() {
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: 3,
-        color: '#22D3EE',
+        color: '#E60150',
         textAlign: 'center',
         margin: '0 0 20px',
       }}>
@@ -64,7 +64,7 @@ export default function LeaderboardSlide() {
             <TeamBadge teamId={entry.teamId} size={36} showNames={true} />
 
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
-              <StatPill label="W" value={entry.matchesWon} color="#22D3EE" />
+              <StatPill label="W" value={entry.matchesWon} color="#E60150" />
               <StatPill label="G" value={entry.gamesWon} color="#FACC15" />
               <StatPill label="WNR" value={entry.winners} color="#4ade80" />
             </div>

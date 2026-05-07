@@ -43,10 +43,10 @@ export default function Dashboard() {
       overflow: 'hidden',
       position: 'relative',
     }}>
-      {/* Ambient glow */}
+      {/* Ambient glow - hot pink */}
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse at 50% 20%, rgba(34,211,238,0.04) 0%, transparent 60%)',
+        background: 'radial-gradient(ellipse at 50% 20%, rgba(230,1,80,0.06) 0%, transparent 60%)',
       }} />
 
       {/* Header */}
@@ -59,11 +59,16 @@ export default function Dashboard() {
         position: 'relative',
         zIndex: 2,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/logos/padx-logo-white.svg" alt="PadX" style={{ height: 22, opacity: 0.7 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            fontSize: 11, fontFamily: '"Barlow Condensed", sans-serif',
+            fontWeight: 700,
+            color: 'rgba(255,255,255,0.5)',
+            textTransform: 'uppercase', letterSpacing: 3,
+          }}>EA7 Armani</span>
           <span style={{
             fontSize: 10, fontFamily: '"DM Mono", monospace',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.25)',
             textTransform: 'uppercase', letterSpacing: 2,
           }}>presents</span>
         </div>
@@ -82,20 +87,16 @@ export default function Dashboard() {
           World Legends Padel Tour
         </h1>
 
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
+        <span style={{
+          fontFamily: '"Barlow Condensed", sans-serif',
+          fontSize: 14,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: 2,
+          color: '#E60150',
         }}>
-          <span style={{
-            fontFamily: '"Barlow Condensed", sans-serif',
-            fontSize: 14,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: 2,
-            color: '#FACC15',
-          }}>
-            London Masters 2026
-          </span>
-        </div>
+          London Masters 2026
+        </span>
 
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
@@ -116,7 +117,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Stats bar */}
       <StatsBar />
 
       {/* Slide area */}
@@ -153,7 +153,7 @@ export default function Dashboard() {
               width: active === i ? 24 : 8,
               height: 8,
               borderRadius: 4,
-              background: active === i ? '#22D3EE' : 'rgba(255,255,255,0.15)',
+              background: active === i ? '#E60150' : 'rgba(255,255,255,0.15)',
               border: 'none',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
@@ -167,25 +167,20 @@ export default function Dashboard() {
       <footer style={{
         padding: '8px 20px 16px',
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
+        gap: 8,
         position: 'relative',
         zIndex: 2,
       }}>
         <span style={{
           fontSize: 9, fontFamily: '"DM Mono", monospace',
-          color: 'rgba(255,255,255,0.2)',
+          color: 'rgba(255,255,255,0.3)',
           textTransform: 'uppercase', letterSpacing: 1,
         }}>
-          Powered by PadX
+          Powered by
         </span>
-        <span style={{
-          fontSize: 9, fontFamily: '"DM Mono", monospace',
-          color: 'rgba(255,255,255,0.2)',
-          textTransform: 'uppercase', letterSpacing: 1,
-        }}>
-          EA7 Armani
-        </span>
+        <img src="/logos/padx-logo-white.svg" alt="PadX" style={{ height: 16, opacity: 0.5 }} />
       </footer>
 
       <style>{`
