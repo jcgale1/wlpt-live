@@ -226,7 +226,7 @@ export default function Dashboard() {
             color: logoPulse ? '#fff' : 'rgba(255,255,255,0.3)',
             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           }}>
-            genius-digital.net
+            Genius-Digital.net
           </span>
         </div>
       </footer>
