@@ -206,10 +206,15 @@ export default function Dashboard() {
           }}>
             Built by
           </span>
+          <img
+            src="/logos/genius-digital.png"
+            alt="Genius Digital"
+            style={{ height: 18, opacity: 0.35 }}
+          />
           <span style={{
             fontFamily: '"DM Mono", monospace',
             fontSize: 9, letterSpacing: 0.5,
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.25)',
           }}>
             genius-digital.net
           </span>
