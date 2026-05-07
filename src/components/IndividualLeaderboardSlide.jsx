@@ -78,7 +78,7 @@ export default function IndividualLeaderboardSlide() {
 
             <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
               <MiniStat label="WNR" value={p.winners} color="#4ade80" />
-              <MiniStat label="ERR" value={p.errors} color="#f87171" />
+              <MiniStat label="ERR" value={p.errors} color="#E60150" />
               <MiniStat label="KM" value={p.distance.toFixed(1)} color="#60a5fa" />
             </div>
           </motion.div>
