@@ -137,7 +137,7 @@ export default function Dashboard() {
           color: 'rgba(255,255,255,0.2)',
           letterSpacing: 0.5,
         }}>
-          W wins · G games · MP played · w/WNR winners · e/ERR errors · k/KM distance
+          W wins · G games · MP played · WNR winners · ERR errors · KM distance
         </span>
       </div>
 

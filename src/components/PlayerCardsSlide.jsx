@@ -113,9 +113,9 @@ export default function PlayerCardsSlide() {
                         {displayName(name)}
                       </span>
                       <div style={{ display: 'flex', gap: 10 }}>
-                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#E60150' }}>{ps.winners}w</span>
-                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#f87171' }}>{ps.errors}e</span>
-                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#60a5fa' }}>{ps.distance.toFixed(1)}k</span>
+                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#E60150' }}>{ps.winners} <span style={{ fontSize: 9, opacity: 0.6 }}>WNR</span></span>
+                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#f87171' }}>{ps.errors} <span style={{ fontSize: 9, opacity: 0.6 }}>ERR</span></span>
+                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#60a5fa' }}>{ps.distance.toFixed(1)} <span style={{ fontSize: 9, opacity: 0.6 }}>KM</span></span>
                       </div>
                     </div>
                   )
