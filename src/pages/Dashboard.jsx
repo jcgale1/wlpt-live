@@ -198,10 +198,10 @@ export default function Dashboard() {
             }}
           />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{
-            fontSize: 8, fontFamily: '"DM Mono", monospace',
-            color: 'rgba(255,255,255,0.2)',
+            fontSize: 9, fontFamily: '"DM Mono", monospace',
+            color: 'rgba(255,255,255,0.25)',
             textTransform: 'uppercase', letterSpacing: 1,
           }}>
             Built by
@@ -209,12 +209,22 @@ export default function Dashboard() {
           <img
             src="/logos/genius-digital.png"
             alt="Genius Digital"
-            style={{ height: 18, opacity: 0.35 }}
+            style={{
+              height: 28,
+              opacity: logoPulse ? 1 : 0.4,
+              transform: logoPulse ? 'scale(1.4)' : 'scale(1)',
+              transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              filter: logoPulse
+                ? 'drop-shadow(0 0 6px rgba(255,255,255,0.6)) drop-shadow(0 0 14px rgba(255,255,255,0.3))'
+                : 'none',
+            }}
           />
           <span style={{
             fontFamily: '"DM Mono", monospace',
-            fontSize: 9, letterSpacing: 0.5,
-            color: 'rgba(255,255,255,0.25)',
+            fontSize: 10, letterSpacing: 0.5,
+            opacity: logoPulse ? 1 : 0.4,
+            color: logoPulse ? '#fff' : 'rgba(255,255,255,0.3)',
+            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
           }}>
             genius-digital.net
           </span>
