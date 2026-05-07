@@ -172,30 +172,54 @@ export default function Dashboard() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 8,
+        gap: 16,
         position: 'relative',
         zIndex: 2,
       }}>
-        <span style={{
-          fontSize: 9, fontFamily: '"DM Mono", monospace',
-          color: '#E60150',
-          textTransform: 'uppercase', letterSpacing: 1,
-        }}>
-          Powered by
-        </span>
-        <img
-          src={logoPulse ? '/logos/padx-logo-pink.svg' : '/logos/padx-logo-white.svg'}
-          alt="PadX"
-          style={{
-            height: 16,
-            opacity: logoPulse ? 1 : 0.6,
-            transform: logoPulse ? 'scale(2)' : 'scale(1)',
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            fontSize: 9, fontFamily: '"DM Mono", monospace',
+            color: '#E60150',
+            textTransform: 'uppercase', letterSpacing: 1,
+          }}>
+            Powered by
+          </span>
+          <img
+            src={logoPulse ? '/logos/padx-logo-pink.svg' : '/logos/padx-logo-white.svg'}
+            alt="PadX"
+            style={{
+              height: 16,
+              opacity: logoPulse ? 1 : 0.6,
+              transform: logoPulse ? 'scale(2)' : 'scale(1)',
+              transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              filter: logoPulse
+                ? 'drop-shadow(0 0 6px #E60150) drop-shadow(0 0 16px #E60150) drop-shadow(0 0 30px rgba(230,1,80,0.5))'
+                : 'none',
+            }}
+          />
+        </div>
+        <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: 10 }}>|</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            fontSize: 9, fontFamily: '"DM Mono", monospace',
+            color: 'rgba(255,255,255,0.3)',
+            textTransform: 'uppercase', letterSpacing: 1,
+          }}>
+            Built by
+          </span>
+          <span style={{
+            fontFamily: '"Barlow Condensed", sans-serif',
+            fontSize: 13, fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: 2,
+            opacity: logoPulse ? 1 : 0.5,
+            color: logoPulse ? '#fff' : 'rgba(255,255,255,0.6)',
+            transform: logoPulse ? 'scale(1.15)' : 'scale(1)',
             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-            filter: logoPulse
-              ? 'drop-shadow(0 0 6px #E60150) drop-shadow(0 0 16px #E60150) drop-shadow(0 0 30px rgba(230,1,80,0.5))'
-              : 'none',
-          }}
-        />
+            display: 'inline-block',
+          }}>
+            Genius Digital
+          </span>
+        </div>
       </footer>
 
       <style>{`
