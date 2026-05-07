@@ -91,15 +91,21 @@ function buildPlayerLeaderboard(matches) {
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'SET_MATCHES':
-      if (action.payload.length === state.matches.length) return state
-      return { ...state, matches: action.payload, leaderboard: buildLeaderboard(action.payload), playerLeaderboard: buildPlayerLeaderboard(action.payload) }
+    case 'SET_MATCHES': {
+      const deduped = action.payload.filter((m, i, arr) => arr.findIndex(x => x.id === m.id) === i)
+      if (deduped.length === state.matches.length) return state
+      return { ...state, matches: deduped, leaderboard: buildLeaderboard(deduped), playerLeaderboard: buildPlayerLeaderboard(deduped) }
+    }
     case 'ADD_MATCH': {
+      if (state.matches.some(m => m.id === action.payload.id)) return state
       const matches = [...state.matches, action.payload]
       return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
     }
     case 'ADD_MATCHES': {
-      const matches = [...state.matches, ...action.payload]
+      const existingIds = new Set(state.matches.map(m => m.id))
+      const newMatches = action.payload.filter(m => !existingIds.has(m.id))
+      if (newMatches.length === 0) return state
+      const matches = [...state.matches, ...newMatches]
       return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
     }
     default:
