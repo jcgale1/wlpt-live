@@ -126,6 +126,22 @@ export default function Dashboard() {
       <StatsBar />
 
       <div style={{
+        textAlign: 'center',
+        padding: '6px 16px 0',
+        position: 'relative',
+        zIndex: 2,
+      }}>
+        <span style={{
+          fontFamily: '"DM Mono", monospace',
+          fontSize: 8,
+          color: 'rgba(255,255,255,0.2)',
+          letterSpacing: 0.5,
+        }}>
+          W matches won · G games won · MP played · WNR winners · ERR errors · KM distance
+        </span>
+      </div>
+
+      <div style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
