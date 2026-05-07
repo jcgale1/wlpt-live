@@ -170,9 +170,9 @@ export default function Dashboard() {
       <footer style={{
         padding: '8px 20px 16px',
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
         alignItems: 'center',
-        gap: 16,
+        gap: 4,
         position: 'relative',
         zIndex: 2,
       }}>
@@ -198,23 +198,18 @@ export default function Dashboard() {
             }}
           />
         </div>
-        <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: 10 }}>|</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <span style={{
-            fontSize: 9, fontFamily: '"DM Mono", monospace',
-            color: 'rgba(255,255,255,0.3)',
+            fontSize: 8, fontFamily: '"DM Mono", monospace',
+            color: 'rgba(255,255,255,0.2)',
             textTransform: 'uppercase', letterSpacing: 1,
           }}>
             Built by
           </span>
           <span style={{
             fontFamily: '"DM Mono", monospace',
-            fontSize: 11, letterSpacing: 0.5,
-            opacity: logoPulse ? 1 : 0.5,
-            color: logoPulse ? '#fff' : 'rgba(255,255,255,0.6)',
-            transform: logoPulse ? 'scale(1.15)' : 'scale(1)',
-            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-            display: 'inline-block',
+            fontSize: 9, letterSpacing: 0.5,
+            color: 'rgba(255,255,255,0.3)',
           }}>
             genius-digital.net
           </span>
