@@ -17,7 +17,7 @@ export default function StatsBar() {
     }}>
       <Stat label="Matches" value={matches.length} />
       <Divider />
-      <Stat label="Winners" value={totalWinners} color="#E60150" />
+      <Stat label="Winners" value={totalWinners} color="#4ade80" />
       <Divider />
       <Stat label="Distance" value={`${totalDistance.toFixed(1)}km`} color="#60a5fa" />
     </div>
