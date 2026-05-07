@@ -1,10 +1,10 @@
 export const TEAMS = [
-  { id: 'terry-shevchenko', players: ['John Terry', 'Andriy Shevchenko'] },
-  { id: 'hasselbaink-dimatteo', players: ['Jimmy Floyd Hasselbaink', 'Roberto Di Matteo'] },
-  { id: 'bent-gayle', players: ['Darren Bent', 'Marcus Gayle'] },
-  { id: 'cech-cudicini', players: ['Petr Čech', 'Carlo Cudicini'] },
-  { id: 'ohara-morris', players: ['Jamie O\'Hara', 'Jody Morris'] },
-  { id: 'lesaux-sidwell', players: ['Graeme Le Saux', 'Steve Sidwell'] },
+  { id: 'terry-shevchenko', players: ['John Terry', 'Andriy Shevchenko'], image: '/players/terrysheva.jpg' },
+  { id: 'hasselbaink-dimatteo', players: ['Jimmy Floyd Hasselbaink', 'Roberto Di Matteo'], image: '/players/hasselbainkdimatteo.jpg' },
+  { id: 'bent-gayle', players: ['Darren Bent', 'Marcus Gayle'], image: '/players/bentgayle.jpg' },
+  { id: 'cech-cudicini', players: ['Petr Čech', 'Carlo Cudicini'], image: '/players/cechcudicini.jpg' },
+  { id: 'ohara-morris', players: ['Jamie O\'Hara', 'Jody Morris'], image: '/players/oharamorris.jpg' },
+  { id: 'lesaux-sidwell', players: ['Graeme Le Saux', 'Steve Sidwell'], image: '/players/lesauxsidwell.jpg' },
 ]
 
 const PLAYER_IMAGES = {

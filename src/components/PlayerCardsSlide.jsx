@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
-import PlayerAvatar from './PlayerAvatar.jsx'
 
 export default function PlayerCardsSlide() {
   const { leaderboard, playerLeaderboard } = useStore()
@@ -28,12 +27,12 @@ export default function PlayerCardsSlide() {
         letterSpacing: 3,
         color: '#FACC15',
         textAlign: 'center',
-        margin: '0 0 16px',
+        margin: '0 0 14px',
       }}>
         Top Teams
       </h2>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 380 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 }}>
         {top3.map((entry, i) => {
           const team = TEAMS.find(t => t.id === entry.teamId)
           if (!team) return null
@@ -41,21 +40,35 @@ export default function PlayerCardsSlide() {
           return (
             <motion.div
               key={entry.teamId}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.15, duration: 0.5 }}
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+                background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 16,
-                padding: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
+                overflow: 'hidden',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Pair hero image */}
+              <div style={{ position: 'relative', height: 120 }}>
+                <img
+                  src={team.image}
+                  alt={`${displayName(team.players[0])} & ${displayName(team.players[1])}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'center 35%',
+                    display: 'block',
+                  }}
+                />
                 <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(180deg, transparent 30%, rgba(4,4,6,0.85) 100%)',
+                }} />
+                <div style={{
+                  position: 'absolute', top: 8, left: 10,
                   width: 28, height: 28, borderRadius: '50%',
                   background: i === 0 ? '#FACC15' : i === 1 ? '#C0C0C0' : '#CD7F32',
                   display: 'grid', placeItems: 'center',
@@ -64,31 +77,45 @@ export default function PlayerCardsSlide() {
                 }}>
                   {i + 1}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <div style={{
+                  position: 'absolute', bottom: 8, left: 12, right: 12,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+                }}>
+                  <span style={{
+                    fontSize: 16, fontWeight: 700, color: '#fff',
+                    fontFamily: '"Barlow Condensed", sans-serif',
+                    textTransform: 'uppercase', letterSpacing: 1,
+                    textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                  }}>
                     {displayName(team.players[0])} & {displayName(team.players[1])}
                   </span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: '"DM Mono", monospace' }}>
-                    {entry.matchesWon}W / {entry.gamesWon}G / {entry.matchesPlayed} played
+                  <span style={{
+                    fontSize: 11, color: 'rgba(255,255,255,0.6)',
+                    fontFamily: '"DM Mono", monospace',
+                    textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                  }}>
+                    {entry.matchesWon}W / {entry.gamesWon}G
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 10, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+              {/* Per-player stats */}
+              <div style={{ display: 'flex', padding: '10px 12px', gap: 8 }}>
                 {team.players.map(name => {
                   const ps = getPlayerStats(name)
                   return (
-                    <div key={name} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <PlayerAvatar name={name} size={36} />
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                          {displayName(name)}
-                        </span>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <span style={{ fontSize: 11, fontFamily: '"DM Mono", monospace', color: '#E60150' }}>{ps.winners}w</span>
-                          <span style={{ fontSize: 11, fontFamily: '"DM Mono", monospace', color: '#f87171' }}>{ps.errors}e</span>
-                          <span style={{ fontSize: 11, fontFamily: '"DM Mono", monospace', color: '#60a5fa' }}>{ps.distance.toFixed(1)}k</span>
-                        </div>
+                    <div key={name} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)',
+                        fontFamily: '"Barlow Condensed", sans-serif',
+                        textTransform: 'uppercase', letterSpacing: 0.5,
+                      }}>
+                        {displayName(name)}
+                      </span>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#E60150' }}>{ps.winners}w</span>
+                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#f87171' }}>{ps.errors}e</span>
+                        <span style={{ fontSize: 12, fontFamily: '"DM Mono", monospace', color: '#60a5fa' }}>{ps.distance.toFixed(1)}k</span>
                       </div>
                     </div>
                   )
