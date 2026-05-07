@@ -92,6 +92,7 @@ function buildPlayerLeaderboard(matches) {
 function reducer(state, action) {
   switch (action.type) {
     case 'SET_MATCHES':
+      if (action.payload.length === state.matches.length) return state
       return { ...state, matches: action.payload, leaderboard: buildLeaderboard(action.payload), playerLeaderboard: buildPlayerLeaderboard(action.payload) }
     case 'ADD_MATCH': {
       const matches = [...state.matches, action.payload]
@@ -138,7 +139,27 @@ export function StoreProvider({ children }) {
       if (e.data.type === 'NEW_MATCH') dispatch({ type: 'ADD_MATCH', payload: e.data.match })
       if (e.data.type === 'NEW_MATCHES') dispatch({ type: 'ADD_MATCHES', payload: e.data.matches })
     }
-    return () => bc.close()
+
+    const onStorage = (e) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const matches = JSON.parse(e.newValue)
+          if (Array.isArray(matches)) dispatch({ type: 'SET_MATCHES', payload: matches })
+        } catch {}
+      }
+    }
+    window.addEventListener('storage', onStorage)
+
+    const poll = setInterval(() => {
+      const stored = loadMatches()
+      if (stored) dispatch({ type: 'SET_MATCHES', payload: stored })
+    }, 5000)
+
+    return () => {
+      bc.close()
+      window.removeEventListener('storage', onStorage)
+      clearInterval(poll)
+    }
   }, [])
 
   const addMatch = useCallback((match) => {
