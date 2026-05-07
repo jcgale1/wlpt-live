@@ -1,9 +1,9 @@
 import { useStore } from '../lib/store.jsx'
 
 export default function StatsBar() {
-  const { matches, leaderboard } = useStore()
-  const totalWinners = leaderboard.reduce((sum, e) => sum + e.winners, 0)
-  const totalDistance = leaderboard.reduce((sum, e) => sum + e.distance, 0)
+  const { matches, playerLeaderboard } = useStore()
+  const totalWinners = playerLeaderboard.reduce((sum, p) => sum + p.winners, 0)
+  const totalDistance = playerLeaderboard.reduce((sum, p) => sum + p.distance, 0)
 
   return (
     <div style={{
@@ -17,7 +17,7 @@ export default function StatsBar() {
     }}>
       <Stat label="Matches" value={matches.length} />
       <Divider />
-      <Stat label="Winners" value={totalWinners} color="#4ade80" />
+      <Stat label="Winners" value={totalWinners} color="#E60150" />
       <Divider />
       <Stat label="Distance" value={`${totalDistance.toFixed(1)}km`} color="#60a5fa" />
     </div>

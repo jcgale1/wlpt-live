@@ -115,20 +115,48 @@ function LoginForm() {
 }
 
 function MatchEntryForm() {
-  const { addMatch, addMatches } = useStore()
+  const { addMatches } = useStore()
   const [rows, setRows] = useState([emptyRow()])
 
   function emptyRow() {
     return {
       team1Id: '', team2Id: '', team1Score: '', team2Score: '',
-      team1Winners: '', team1Errors: '', team1Distance: '',
-      team2Winners: '', team2Errors: '', team2Distance: '',
       round: 'Round 1',
+      playerStats: {},
     }
   }
 
   function updateRow(index, field, value) {
-    setRows(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r))
+    setRows(prev => prev.map((r, i) => {
+      if (i !== index) return r
+      const updated = { ...r, [field]: value }
+      if (field === 'team1Id' || field === 'team2Id') {
+        updated.playerStats = buildPlayerStatsTemplate(updated.team1Id, updated.team2Id)
+      }
+      return updated
+    }))
+  }
+
+  function buildPlayerStatsTemplate(team1Id, team2Id) {
+    const ps = {}
+    const t1 = TEAMS.find(t => t.id === team1Id)
+    const t2 = TEAMS.find(t => t.id === team2Id)
+    if (t1) t1.players.forEach(n => { ps[n] = { winners: '', errors: '', distance: '' } })
+    if (t2) t2.players.forEach(n => { ps[n] = { winners: '', errors: '', distance: '' } })
+    return ps
+  }
+
+  function updatePlayerStat(rowIndex, playerName, field, value) {
+    setRows(prev => prev.map((r, i) => {
+      if (i !== rowIndex) return r
+      return {
+        ...r,
+        playerStats: {
+          ...r.playerStats,
+          [playerName]: { ...r.playerStats[playerName], [field]: value },
+        },
+      }
+    }))
   }
 
   function addRow() {
@@ -141,33 +169,41 @@ function MatchEntryForm() {
 
   function submitAll(e) {
     e.preventDefault()
-    const newMatches = rows.filter(r => r.team1Id && r.team2Id).map((r, i) => ({
-      id: `match-${Date.now()}-${i}`,
-      round: r.round,
-      team1Id: r.team1Id,
-      team2Id: r.team2Id,
-      team1Score: parseInt(r.team1Score) || 0,
-      team2Score: parseInt(r.team2Score) || 0,
-      winner: (parseInt(r.team1Score) || 0) >= (parseInt(r.team2Score) || 0) ? r.team1Id : r.team2Id,
-      stats: {
-        [r.team1Id]: {
-          winners: parseInt(r.team1Winners) || 0,
-          errors: parseInt(r.team1Errors) || 0,
-          distance: parseFloat(r.team1Distance) || 0,
-        },
-        [r.team2Id]: {
-          winners: parseInt(r.team2Winners) || 0,
-          errors: parseInt(r.team2Errors) || 0,
-          distance: parseFloat(r.team2Distance) || 0,
-        },
-      },
-      timestamp: new Date().toISOString(),
-    }))
+    const newMatches = rows.filter(r => r.team1Id && r.team2Id).map((r, i) => {
+      const playerStats = {}
+      Object.entries(r.playerStats).forEach(([name, s]) => {
+        playerStats[name] = {
+          winners: parseInt(s.winners) || 0,
+          errors: parseInt(s.errors) || 0,
+          distance: parseFloat(s.distance) || 0,
+        }
+      })
+      return {
+        id: `match-${Date.now()}-${i}`,
+        round: r.round,
+        team1Id: r.team1Id,
+        team2Id: r.team2Id,
+        team1Score: parseInt(r.team1Score) || 0,
+        team2Score: parseInt(r.team2Score) || 0,
+        winner: (parseInt(r.team1Score) || 0) >= (parseInt(r.team2Score) || 0) ? r.team1Id : r.team2Id,
+        playerStats,
+        timestamp: new Date().toISOString(),
+      }
+    })
 
     if (newMatches.length > 0) {
       addMatches(newMatches)
       setRows([emptyRow()])
     }
+  }
+
+  function getPlayersForRow(row) {
+    const players = []
+    const t1 = TEAMS.find(t => t.id === row.team1Id)
+    const t2 = TEAMS.find(t => t.id === row.team2Id)
+    if (t1) players.push(...t1.players)
+    if (t2) players.push(...t2.players)
+    return players
   }
 
   return (
@@ -209,9 +245,6 @@ function MatchEntryForm() {
                   ))}
                 </select>
                 <input type="number" placeholder="Games won" value={row.team1Score} onChange={e => updateRow(i, 'team1Score', e.target.value)} style={inputStyle} min="0" />
-                <input type="number" placeholder="Winners" value={row.team1Winners} onChange={e => updateRow(i, 'team1Winners', e.target.value)} style={inputStyle} min="0" />
-                <input type="number" placeholder="Errors" value={row.team1Errors} onChange={e => updateRow(i, 'team1Errors', e.target.value)} style={inputStyle} min="0" />
-                <input type="number" placeholder="Distance (km)" value={row.team1Distance} onChange={e => updateRow(i, 'team1Distance', e.target.value)} style={inputStyle} step="0.01" min="0" />
               </div>
               <div>
                 <label style={labelStyle}>Team 2</label>
@@ -222,11 +255,53 @@ function MatchEntryForm() {
                   ))}
                 </select>
                 <input type="number" placeholder="Games won" value={row.team2Score} onChange={e => updateRow(i, 'team2Score', e.target.value)} style={inputStyle} min="0" />
-                <input type="number" placeholder="Winners" value={row.team2Winners} onChange={e => updateRow(i, 'team2Winners', e.target.value)} style={inputStyle} min="0" />
-                <input type="number" placeholder="Errors" value={row.team2Errors} onChange={e => updateRow(i, 'team2Errors', e.target.value)} style={inputStyle} min="0" />
-                <input type="number" placeholder="Distance (km)" value={row.team2Distance} onChange={e => updateRow(i, 'team2Distance', e.target.value)} style={inputStyle} step="0.01" min="0" />
               </div>
             </div>
+
+            {getPlayersForRow(row).length > 0 && (
+              <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+                <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>Player Stats</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {getPlayersForRow(row).map(name => (
+                    <div key={name} style={{
+                      background: 'rgba(255,255,255,0.02)', borderRadius: 8, padding: '8px 10px',
+                    }}>
+                      <span style={{
+                        fontSize: 12, fontWeight: 600, color: '#fff',
+                        fontFamily: '"Barlow Condensed", sans-serif',
+                        textTransform: 'uppercase', letterSpacing: 1,
+                        display: 'block', marginBottom: 6,
+                      }}>
+                        {displayName(name)}
+                      </span>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                        <input
+                          type="number" placeholder="Winners"
+                          value={row.playerStats[name]?.winners || ''}
+                          onChange={e => updatePlayerStat(i, name, 'winners', e.target.value)}
+                          style={{ ...inputStyle, marginTop: 0, fontSize: 12, padding: '6px 8px' }}
+                          min="0"
+                        />
+                        <input
+                          type="number" placeholder="Errors"
+                          value={row.playerStats[name]?.errors || ''}
+                          onChange={e => updatePlayerStat(i, name, 'errors', e.target.value)}
+                          style={{ ...inputStyle, marginTop: 0, fontSize: 12, padding: '6px 8px' }}
+                          min="0"
+                        />
+                        <input
+                          type="number" placeholder="Dist (km)"
+                          value={row.playerStats[name]?.distance || ''}
+                          onChange={e => updatePlayerStat(i, name, 'distance', e.target.value)}
+                          style={{ ...inputStyle, marginTop: 0, fontSize: 12, padding: '6px 8px' }}
+                          step="0.01" min="0"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

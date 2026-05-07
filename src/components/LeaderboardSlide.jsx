@@ -23,7 +23,7 @@ export default function LeaderboardSlide() {
         textAlign: 'center',
         margin: '0 0 20px',
       }}>
-        Leaderboard
+        Team Leaderboard
       </h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflow: 'hidden' }}>
@@ -66,7 +66,7 @@ export default function LeaderboardSlide() {
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
               <StatPill label="W" value={entry.matchesWon} color="#4ade80" />
               <StatPill label="G" value={entry.gamesWon} color="#FACC15" />
-              <StatPill label="WNR" value={entry.winners} color="#E60150" />
+              <StatPill label="MP" value={entry.matchesPlayed} color="rgba(255,255,255,0.5)" />
             </div>
           </motion.div>
         ))}

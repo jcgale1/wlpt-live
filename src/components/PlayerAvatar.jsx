@@ -22,8 +22,6 @@ export default function PlayerAvatar({ name, size = 64 }) {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          objectPosition: `${player.faceX}% ${player.faceY}%`,
-          transform: 'scale(2.2)',
         }}
       />
     </div>

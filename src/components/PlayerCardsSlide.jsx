@@ -5,8 +5,12 @@ import { displayName } from '../lib/names.js'
 import PlayerAvatar from './PlayerAvatar.jsx'
 
 export default function PlayerCardsSlide() {
-  const { leaderboard } = useStore()
+  const { leaderboard, playerLeaderboard } = useStore()
   const top3 = leaderboard.slice(0, 3)
+
+  function getPlayerStats(name) {
+    return playerLeaderboard.find(p => p.name === name) || { winners: 0, errors: 0, distance: 0 }
+  }
 
   return (
     <motion.div
@@ -50,49 +54,50 @@ export default function PlayerCardsSlide() {
                 gap: 12,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: '50%',
+                  width: 28, height: 28, borderRadius: '50%',
                   background: i === 0 ? '#FACC15' : i === 1 ? '#C0C0C0' : '#CD7F32',
                   display: 'grid', placeItems: 'center',
-                  fontSize: 16, fontWeight: 800, color: '#040406',
+                  fontSize: 14, fontWeight: 800, color: '#040406',
                   fontFamily: '"Barlow Condensed", sans-serif',
                 }}>
                   {i + 1}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <PlayerAvatar name={team.players[0]} size={48} />
-                  <PlayerAvatar name={team.players[1]} size={48} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase', letterSpacing: 1 }}>
                     {displayName(team.players[0])} & {displayName(team.players[1])}
                   </span>
                   <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: '"DM Mono", monospace' }}>
-                    {entry.matchesPlayed} matches played
+                    {entry.matchesWon}W / {entry.gamesWon}G / {entry.matchesPlayed} played
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 4px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <MiniStat label="Matches Won" value={entry.matchesWon} color="#4ade80" />
-                <MiniStat label="Winners" value={entry.winners} color="#E60150" />
-                <MiniStat label="Errors" value={entry.errors} color="#f87171" />
-                <MiniStat label="Distance" value={`${entry.distance.toFixed(1)}km`} color="#60a5fa" />
+              <div style={{ display: 'flex', gap: 10, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+                {team.players.map(name => {
+                  const ps = getPlayerStats(name)
+                  return (
+                    <div key={name} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <PlayerAvatar name={name} size={36} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                          {displayName(name)}
+                        </span>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <span style={{ fontSize: 11, fontFamily: '"DM Mono", monospace', color: '#E60150' }}>{ps.winners}w</span>
+                          <span style={{ fontSize: 11, fontFamily: '"DM Mono", monospace', color: '#f87171' }}>{ps.errors}e</span>
+                          <span style={{ fontSize: 11, fontFamily: '"DM Mono", monospace', color: '#60a5fa' }}>{ps.distance.toFixed(1)}k</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </motion.div>
           )
         })}
       </div>
     </motion.div>
-  )
-}
-
-function MiniStat({ label, value, color }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <span style={{ fontSize: 8, fontFamily: '"DM Mono", monospace', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
-      <span style={{ fontSize: 18, fontWeight: 700, fontFamily: '"Barlow Condensed", sans-serif', color }}>{value}</span>
-    </div>
   )
 }

@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import LeaderboardSlide from '../components/LeaderboardSlide.jsx'
+import IndividualLeaderboardSlide from '../components/IndividualLeaderboardSlide.jsx'
 import PlayerCardsSlide from '../components/PlayerCardsSlide.jsx'
 import MatchFeedSlide from '../components/MatchFeedSlide.jsx'
 import BrandingSlide from '../components/BrandingSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
 
-const SLIDES = [LeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
+const SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
 const SLIDE_DURATION = 8000
 
 export default function Dashboard() {
@@ -50,13 +51,11 @@ export default function Dashboard() {
       overflow: 'hidden',
       position: 'relative',
     }}>
-      {/* Ambient glow - hot pink */}
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
         background: 'radial-gradient(ellipse at 50% 20%, rgba(230,1,80,0.06) 0%, transparent 60%)',
       }} />
 
-      {/* Header */}
       <header style={{
         padding: '16px 20px 12px',
         display: 'flex',
@@ -126,7 +125,6 @@ export default function Dashboard() {
 
       <StatsBar />
 
-      {/* Slide area */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -143,7 +141,6 @@ export default function Dashboard() {
         </AnimatePresence>
       </div>
 
-      {/* Slide indicators */}
       <div style={{
         display: 'flex',
         justifyContent: 'center',
@@ -170,7 +167,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Footer */}
       <footer style={{
         padding: '8px 20px 16px',
         display: 'flex',

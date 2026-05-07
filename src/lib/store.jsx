@@ -1,12 +1,10 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
-import { TEAMS } from './players.js'
+import { TEAMS, ALL_PLAYERS } from './players.js'
 
 const StoreContext = createContext()
 
 function generateDummyData() {
   const matches = []
-  const teamIds = TEAMS.map(t => t.id)
-
   const matchups = [
     [0, 1], [2, 3], [4, 5],
     [0, 2], [1, 4], [3, 5],
@@ -14,30 +12,29 @@ function generateDummyData() {
   ]
 
   matchups.forEach(([a, b], i) => {
-    const team1 = TEAMS[teamIds[a]] ? teamIds[a] : TEAMS[a].id
-    const team2 = TEAMS[teamIds[b]] ? teamIds[b] : TEAMS[b].id
+    const t1 = TEAMS[a]
+    const t2 = TEAMS[b]
     const gamesWon1 = Math.floor(Math.random() * 3)
     const gamesWon2 = Math.floor(Math.random() * 3)
+
+    const playerStats = {}
+    ;[...t1.players, ...t2.players].forEach(name => {
+      playerStats[name] = {
+        winners: Math.floor(Math.random() * 8) + 1,
+        errors: Math.floor(Math.random() * 5) + 1,
+        distance: +(Math.random() * 1.2 + 0.3).toFixed(2),
+      }
+    })
+
     matches.push({
       id: `match-${i + 1}`,
       round: i < 3 ? 'Round 1' : i < 6 ? 'Round 2' : 'Round 3',
-      team1Id: TEAMS[a].id,
-      team2Id: TEAMS[b].id,
+      team1Id: t1.id,
+      team2Id: t2.id,
       team1Score: gamesWon1,
       team2Score: gamesWon2,
-      winner: gamesWon1 > gamesWon2 ? TEAMS[a].id : TEAMS[b].id,
-      stats: {
-        [TEAMS[a].id]: {
-          winners: Math.floor(Math.random() * 12) + 3,
-          errors: Math.floor(Math.random() * 8) + 1,
-          distance: +(Math.random() * 1.5 + 0.8).toFixed(2),
-        },
-        [TEAMS[b].id]: {
-          winners: Math.floor(Math.random() * 12) + 3,
-          errors: Math.floor(Math.random() * 8) + 1,
-          distance: +(Math.random() * 1.5 + 0.8).toFixed(2),
-        },
-      },
+      winner: gamesWon1 > gamesWon2 ? t1.id : t2.id,
+      playerStats,
       timestamp: new Date(2026, 4, 8, 9 + i, 0).toISOString(),
     })
   })
@@ -48,7 +45,7 @@ function generateDummyData() {
 function buildLeaderboard(matches) {
   const board = {}
   TEAMS.forEach(t => {
-    board[t.id] = { teamId: t.id, matchesWon: 0, gamesWon: 0, winners: 0, errors: 0, distance: 0, matchesPlayed: 0 }
+    board[t.id] = { teamId: t.id, matchesWon: 0, gamesWon: 0, matchesPlayed: 0 }
   })
 
   matches.forEach(m => {
@@ -59,49 +56,61 @@ function buildLeaderboard(matches) {
     board[m.team2Id].gamesWon += m.team2Score
     if (m.winner === m.team1Id) board[m.team1Id].matchesWon++
     else board[m.team2Id].matchesWon++
-
-    const s1 = m.stats[m.team1Id]
-    const s2 = m.stats[m.team2Id]
-    if (s1) {
-      board[m.team1Id].winners += s1.winners
-      board[m.team1Id].errors += s1.errors
-      board[m.team1Id].distance += s1.distance
-    }
-    if (s2) {
-      board[m.team2Id].winners += s2.winners
-      board[m.team2Id].errors += s2.errors
-      board[m.team2Id].distance += s2.distance
-    }
   })
 
   return Object.values(board).sort((a, b) =>
-    b.matchesWon - a.matchesWon || b.gamesWon - a.gamesWon || b.winners - a.winners
+    b.matchesWon - a.matchesWon || b.gamesWon - a.gamesWon
+  )
+}
+
+function buildPlayerLeaderboard(matches) {
+  const board = {}
+  ALL_PLAYERS.forEach(p => {
+    board[p.name] = { name: p.name, teamId: p.teamId, winners: 0, errors: 0, distance: 0, matchesPlayed: 0 }
+  })
+
+  matches.forEach(m => {
+    if (!m.playerStats) return
+    Object.entries(m.playerStats).forEach(([name, stats]) => {
+      if (!board[name]) return
+      board[name].winners += stats.winners || 0
+      board[name].errors += stats.errors || 0
+      board[name].distance += stats.distance || 0
+      board[name].matchesPlayed++
+    })
+  })
+
+  return Object.values(board).sort((a, b) =>
+    b.winners - a.winners || (a.errors - b.errors) || b.distance - a.distance
   )
 }
 
 function reducer(state, action) {
   switch (action.type) {
     case 'SET_MATCHES':
-      return { ...state, matches: action.payload, leaderboard: buildLeaderboard(action.payload) }
+      return { ...state, matches: action.payload, leaderboard: buildLeaderboard(action.payload), playerLeaderboard: buildPlayerLeaderboard(action.payload) }
     case 'ADD_MATCH': {
       const matches = [...state.matches, action.payload]
-      return { ...state, matches, leaderboard: buildLeaderboard(matches) }
+      return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
     }
     case 'ADD_MATCHES': {
       const matches = [...state.matches, ...action.payload]
-      return { ...state, matches, leaderboard: buildLeaderboard(matches) }
+      return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
     }
     default:
       return state
   }
 }
 
-const STORAGE_KEY = 'wlpt-matches'
+const STORAGE_KEY = 'wlpt-matches-v2'
 
 function loadMatches() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) return JSON.parse(stored)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed.length > 0 && parsed[0].playerStats) return parsed
+    }
   } catch {}
   return null
 }
@@ -112,6 +121,7 @@ export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, {
     matches: initial,
     leaderboard: buildLeaderboard(initial),
+    playerLeaderboard: buildPlayerLeaderboard(initial),
   })
 
   useEffect(() => {
