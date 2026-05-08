@@ -163,15 +163,16 @@ function loadStarted() {
 }
 
 export function StoreProvider({ children }) {
-  const saved = loadMatches()
-  const started = loadStarted()
-  const initial = started ? (saved || []) : []
+  // Always load saved matches if they exist — don't gate on started flag
+  // (The flag is for UI state, not for whether matches should be loaded)
+  const initial = loadMatches() || []
   const [state, dispatch] = useReducer(reducer, {
     matches: initial,
     leaderboard: buildLeaderboard(initial),
     playerLeaderboard: buildPlayerLeaderboard(initial),
     tournamentClosed: loadClosed(),
-    tournamentStarted: loadStarted(),
+    // If we have matches, the tournament must be started (defensive)
+    tournamentStarted: loadStarted() || initial.length > 0,
   })
 
   useEffect(() => {
