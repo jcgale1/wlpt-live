@@ -279,49 +279,6 @@ function MatchForm({ initial, onSubmit, onCancel, submitLabel }) {
         </div>
       </div>
 
-      {players.length > 0 && (
-        <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
-          <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>Player Stats</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {players.map(name => (
-              <div key={name} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 8, padding: '8px 10px' }}>
-                <span style={{
-                  fontSize: 12, fontWeight: 600, color: '#fff',
-                  fontFamily: '"Barlow Condensed", sans-serif',
-                  textTransform: 'uppercase', letterSpacing: 1,
-                  display: 'block', marginBottom: 6,
-                }}>
-                  {displayName(name)}
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-                  <input
-                    type="number" placeholder="Winners"
-                    value={row.playerStats[name]?.winners ?? ''}
-                    onChange={e => updatePlayerStat(name, 'winners', e.target.value)}
-                    style={{ ...inputStyle, marginTop: 0, fontSize: 12, padding: '6px 8px' }}
-                    min="0"
-                  />
-                  <input
-                    type="number" placeholder="Errors"
-                    value={row.playerStats[name]?.errors ?? ''}
-                    onChange={e => updatePlayerStat(name, 'errors', e.target.value)}
-                    style={{ ...inputStyle, marginTop: 0, fontSize: 12, padding: '6px 8px' }}
-                    min="0"
-                  />
-                  <input
-                    type="number" placeholder="Dist (km)"
-                    value={row.playerStats[name]?.distance ?? ''}
-                    onChange={e => updatePlayerStat(name, 'distance', e.target.value)}
-                    style={{ ...inputStyle, marginTop: 0, fontSize: 12, padding: '6px 8px' }}
-                    step="0.01" min="0"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
         {onCancel && (
           <button type="button" onClick={onCancel} style={btnSecondary}>Cancel</button>
