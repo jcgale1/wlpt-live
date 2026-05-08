@@ -1,19 +1,19 @@
 /**
- * Cross-device sync via Supabase Realtime ONLY.
- * - Admin tracks state in Presence (server-side, persists for channel lifetime)
- * - Admin broadcasts on every state change (push)
- * - Dashboard reads admin Presence on connect + listens for broadcasts
- *
- * No HTTP polling — in-memory serverless state is unreliable across instances.
+ * Cross-device sync via Supabase Realtime + HTTP polling fallback.
+ * Both paths converge via applyIncoming() which uses version reconciliation.
+ * Realtime is fastest; HTTP catches devices where WebSockets are blocked (smart TVs).
  */
 
 import { supabase } from './supabase.js'
 
 const CHANNEL_NAME = 'wlpt-sync'
 const VERSION_KEY = 'wlpt-last-applied-version'
+const API_URL = '/api/state'
+const POLL_INTERVAL = 3000
 
 let channel = null
 let heartbeat = null
+let httpPoll = null
 let isAdmin = false
 let stateGetter = null
 let onStateCallback = null
@@ -45,13 +45,50 @@ function applyIncoming(payload) {
   onStateCallback(payload)
 }
 
+function startHttpPoll() {
+  if (httpPoll) clearInterval(httpPoll)
+
+  if (isAdmin) {
+    // Admin: push state to API every 3s (HTTP fallback for TVs without WebSocket)
+    const pushHttp = () => {
+      if (!stateGetter) return
+      const payload = makePayload(stateGetter())
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => {})
+    }
+    pushHttp()
+    httpPoll = setInterval(pushHttp, POLL_INTERVAL)
+  } else {
+    // Dashboard: pull from API every 3s (only applies if version is newer)
+    const pullHttp = () => {
+      fetch(API_URL + '?t=' + Date.now(), { cache: 'no-store' })
+        .then(r => r.json())
+        .then(data => {
+          if (!data || data.empty) return
+          applyIncoming(data)
+        })
+        .catch(() => {})
+    }
+    pullHttp()
+    setTimeout(pullHttp, 1000)
+    httpPoll = setInterval(pullHttp, POLL_INTERVAL)
+  }
+}
+
 export function initSync({ onStateReceived, getState, admin }) {
   if (channel) channel.unsubscribe()
   if (heartbeat) clearInterval(heartbeat)
+  if (httpPoll) clearInterval(httpPoll)
 
   isAdmin = admin
   stateGetter = getState
   onStateCallback = onStateReceived
+
+  // Start HTTP polling immediately (works on any browser)
+  startHttpPoll()
 
   channel = supabase.channel(CHANNEL_NAME, {
     config: { broadcast: { self: false }, presence: { key: admin ? 'admin' : `viewer-${Date.now()}` } },
@@ -106,10 +143,19 @@ export function initSync({ onStateReceived, getState, admin }) {
 
 // Force an immediate push (admin only) — for reset/start/close to propagate fast
 export function pushStateNow(state) {
-  if (!isAdmin || !channel) return
+  if (!isAdmin) return
   const payload = makePayload(state)
-  try { channel.track({ state: payload }) } catch {}
-  channel.send({ type: 'broadcast', event: 'state_update', payload })
+  // Realtime
+  if (channel) {
+    try { channel.track({ state: payload }) } catch {}
+    channel.send({ type: 'broadcast', event: 'state_update', payload })
+  }
+  // HTTP
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(() => {})
 }
 
 // Compatibility shim
@@ -126,6 +172,10 @@ export function destroySync() {
   if (heartbeat) {
     clearInterval(heartbeat)
     heartbeat = null
+  }
+  if (httpPoll) {
+    clearInterval(httpPoll)
+    httpPoll = null
   }
   if (channel) {
     channel.unsubscribe()
