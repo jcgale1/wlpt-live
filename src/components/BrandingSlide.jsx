@@ -1,7 +1,19 @@
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
+import { useIsLandscape, useScreenWidth } from '../lib/useMediaQuery.js'
 
 export default function BrandingSlide() {
+  const landscape = useIsLandscape()
+  const width = useScreenWidth()
+
+  // Scale QR and text based on screen
+  const qrSize = landscape ? 160 : width < 380 ? 90 : 120
+  const blockMax = landscape ? 240 : width < 380 ? 140 : 180
+  const labelSize = landscape ? 20 : 16
+  const handleSize = landscape ? 11 : 9
+  const padxHeight = landscape ? 32 : 24
+  const urlSize = landscape ? 13 : 11
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -12,10 +24,16 @@ export default function BrandingSlide() {
         width: '100%', height: '100%',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        gap: 20, padding: '0 24px',
+        gap: landscape ? 28 : 20, padding: '0 24px',
       }}
     >
-      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
+      <div style={{
+        display: 'flex',
+        gap: landscape ? 40 : 20,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        width: '100%',
+      }}>
         <QRBlock
           label="WLPT"
           handle="@worldlegendspadeltour"
@@ -25,6 +43,10 @@ export default function BrandingSlide() {
           logo="/logos/ea7-wlpt.svg"
           logoWidth={44}
           logoHeight={10}
+          qrSize={qrSize}
+          blockMax={blockMax}
+          labelSize={labelSize}
+          handleSize={handleSize}
         />
         <QRBlock
           label="PadX"
@@ -33,6 +55,10 @@ export default function BrandingSlide() {
           delay={0.4}
           color="#E60150"
           logo="/logos/padx-mark.svg"
+          qrSize={qrSize}
+          blockMax={blockMax}
+          labelSize={labelSize}
+          handleSize={handleSize}
         />
       </div>
 
@@ -44,16 +70,16 @@ export default function BrandingSlide() {
         transition={{ delay: 0.7, duration: 0.5 }}
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
       >
-        <img src="/logos/padx-logo-white.svg" alt="PadX" style={{ height: 24, opacity: 0.6 }} />
+        <img src="/logos/padx-logo-white.svg" alt="PadX" style={{ height: padxHeight, opacity: 0.6 }} />
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span style={{
-            fontFamily: '"DM Mono", monospace', fontSize: 11, color: '#E60150', letterSpacing: 0.5,
+            fontFamily: '"DM Mono", monospace', fontSize: urlSize, color: '#E60150', letterSpacing: 0.5,
           }}>
             padx.ai
           </span>
           <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 10 }}>|</span>
           <span style={{
-            fontFamily: '"DM Mono", monospace', fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5,
+            fontFamily: '"DM Mono", monospace', fontSize: urlSize, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5,
           }}>
             worldlegendspadeltour.com
           </span>
@@ -77,24 +103,28 @@ export default function BrandingSlide() {
   )
 }
 
-function QRBlock({ label, handle, url, delay, color, logo, logoWidth, logoHeight }) {
+function QRBlock({ label, handle, url, delay, color, logo, logoWidth, logoHeight, qrSize, blockMax, labelSize, handleSize }) {
+  const logoDim = qrSize > 140 ? 32 : 24
+  const logoW = logoWidth ? Math.round(logoWidth * (qrSize / 110)) : logoDim
+  const logoH = logoHeight ? Math.round(logoHeight * (qrSize / 110)) : logoDim
+
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay, duration: 0.6 }}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1, maxWidth: 170 }}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1, maxWidth: blockMax }}
     >
       <div style={{ textAlign: 'center' }}>
         <h3 style={{
           fontFamily: '"Barlow Condensed", sans-serif',
-          fontSize: 16, fontWeight: 700, textTransform: 'uppercase',
+          fontSize: labelSize, fontWeight: 700, textTransform: 'uppercase',
           letterSpacing: 2, color, margin: '0 0 2px',
         }}>
           {label}
         </h3>
         <span style={{
-          fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5,
+          fontFamily: '"DM Mono", monospace', fontSize: handleSize, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5,
         }}>
           {handle}
         </span>
@@ -112,14 +142,14 @@ function QRBlock({ label, handle, url, delay, color, logo, logoWidth, logoHeight
         <div style={{ background: '#fff', borderRadius: 10, padding: 8, position: 'relative' }}>
           <QRCodeSVG
             value={url}
-            size={110}
+            size={qrSize}
             level="H"
             bgColor="#ffffff"
             fgColor="#040406"
             imageSettings={{
               src: logo,
-              height: logoHeight || 24,
-              width: logoWidth || 24,
+              height: logoH,
+              width: logoW,
               excavate: true,
             }}
           />
