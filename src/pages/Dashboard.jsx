@@ -5,12 +5,15 @@ import IndividualLeaderboardSlide from '../components/IndividualLeaderboardSlide
 import PlayerCardsSlide from '../components/PlayerCardsSlide.jsx'
 import MatchFeedSlide from '../components/MatchFeedSlide.jsx'
 import BrandingSlide from '../components/BrandingSlide.jsx'
+import PodiumSlide from '../components/PodiumSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
+import { useStore } from '../lib/store.jsx'
 
 const SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
 
 export default function Dashboard() {
+  const { tournamentClosed } = useStore()
   const [active, setActive] = useState(0)
   const timerRef = useRef(null)
 
@@ -31,14 +34,25 @@ export default function Dashboard() {
     resetTimer()
   }, [resetTimer])
 
+  // Stop carousel when tournament is closed
+  useEffect(() => {
+    if (tournamentClosed && timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    } else if (!tournamentClosed && !timerRef.current) {
+      resetTimer()
+    }
+  }, [tournamentClosed, resetTimer])
+
   const ActiveSlide = SLIDES[active]
   const [logoPulse, setLogoPulse] = useState(false)
 
   useEffect(() => {
+    if (tournamentClosed) return
     setLogoPulse(true)
     const t = setTimeout(() => setLogoPulse(false), 800)
     return () => clearTimeout(t)
-  }, [active])
+  }, [active, tournamentClosed])
 
   return (
     <div style={{
@@ -110,15 +124,15 @@ export default function Dashboard() {
         }}>
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: '#4ade80',
-            animation: 'pulse 2s infinite',
+            background: tournamentClosed ? '#FACC15' : '#4ade80',
+            animation: tournamentClosed ? 'none' : 'pulse 2s infinite',
           }} />
           <span style={{
             fontSize: 10, fontFamily: '"DM Mono", monospace',
             color: 'rgba(255,255,255,0.4)',
             textTransform: 'uppercase', letterSpacing: 1,
           }}>
-            LIVE &middot; EPSOM, LONDON &middot; 8-9 MAY
+            {tournamentClosed ? 'COMPLETE' : 'LIVE'} &middot; EPSOM, LONDON &middot; 8-9 MAY
           </span>
         </div>
       </header>
@@ -152,36 +166,42 @@ export default function Dashboard() {
         minHeight: 0,
         overflow: 'hidden',
       }}>
-        <AnimatePresence mode="wait">
-          <ActiveSlide key={active} />
-        </AnimatePresence>
+        {tournamentClosed ? (
+          <PodiumSlide />
+        ) : (
+          <AnimatePresence mode="wait">
+            <ActiveSlide key={active} />
+          </AnimatePresence>
+        )}
       </div>
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 8,
-        padding: '12px 0 6px',
-        position: 'relative',
-        zIndex: 2,
-      }}>
-        {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goToSlide(i)}
-            style={{
-              width: active === i ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: active === i ? '#E60150' : 'rgba(255,255,255,0.15)',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              padding: 0,
-            }}
-          />
-        ))}
-      </div>
+      {!tournamentClosed && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 8,
+          padding: '12px 0 6px',
+          position: 'relative',
+          zIndex: 2,
+        }}>
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goToSlide(i)}
+              style={{
+                width: active === i ? 24 : 8,
+                height: 8,
+                borderRadius: 4,
+                background: active === i ? '#E60150' : 'rgba(255,255,255,0.15)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                padding: 0,
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <footer style={{
         padding: '8px 20px 16px',

@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useCallback } from 'r
 import { TEAMS, ALL_PLAYERS } from './players.js'
 
 const StoreContext = createContext()
+const CLOSED_KEY = 'wlpt-tournament-closed'
 
 function generateDummyData() {
   const matches = []
@@ -116,6 +117,10 @@ function reducer(state, action) {
       const matches = state.matches.filter(m => m.id !== action.payload)
       return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
     }
+    case 'CLOSE_TOURNAMENT':
+      return { ...state, tournamentClosed: true }
+    case 'REOPEN_TOURNAMENT':
+      return { ...state, tournamentClosed: false }
     default:
       return state
   }
@@ -134,6 +139,10 @@ function loadMatches() {
   return null
 }
 
+function loadClosed() {
+  try { return localStorage.getItem(CLOSED_KEY) === 'true' } catch { return false }
+}
+
 export function StoreProvider({ children }) {
   const saved = loadMatches()
   const initial = saved || generateDummyData()
@@ -141,6 +150,7 @@ export function StoreProvider({ children }) {
     matches: initial,
     leaderboard: buildLeaderboard(initial),
     playerLeaderboard: buildPlayerLeaderboard(initial),
+    tournamentClosed: loadClosed(),
   })
 
   useEffect(() => {
@@ -148,10 +158,16 @@ export function StoreProvider({ children }) {
   }, [state.matches])
 
   useEffect(() => {
+    localStorage.setItem(CLOSED_KEY, state.tournamentClosed ? 'true' : 'false')
+  }, [state.tournamentClosed])
+
+  useEffect(() => {
     const bc = new BroadcastChannel('wlpt-live')
     bc.onmessage = (e) => {
       if (e.data.type === 'NEW_MATCH') dispatch({ type: 'ADD_MATCH', payload: e.data.match })
       if (e.data.type === 'NEW_MATCHES') dispatch({ type: 'ADD_MATCHES', payload: e.data.matches })
+      if (e.data.type === 'TOURNAMENT_CLOSED') dispatch({ type: 'CLOSE_TOURNAMENT' })
+      if (e.data.type === 'TOURNAMENT_REOPENED') dispatch({ type: 'REOPEN_TOURNAMENT' })
     }
 
     const onStorage = (e) => {
@@ -161,12 +177,17 @@ export function StoreProvider({ children }) {
           if (Array.isArray(matches)) dispatch({ type: 'SET_MATCHES', payload: matches })
         } catch {}
       }
+      if (e.key === CLOSED_KEY && e.newValue) {
+        dispatch({ type: e.newValue === 'true' ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
+      }
     }
     window.addEventListener('storage', onStorage)
 
     const poll = setInterval(() => {
       const stored = loadMatches()
       if (stored) dispatch({ type: 'SET_MATCHES', payload: stored })
+      const closed = loadClosed()
+      dispatch({ type: closed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
     }, 5000)
 
     return () => {
@@ -198,8 +219,22 @@ export function StoreProvider({ children }) {
     dispatch({ type: 'DELETE_MATCH', payload: matchId })
   }, [])
 
+  const closeTournament = useCallback(() => {
+    dispatch({ type: 'CLOSE_TOURNAMENT' })
+    const bc = new BroadcastChannel('wlpt-live')
+    bc.postMessage({ type: 'TOURNAMENT_CLOSED' })
+    bc.close()
+  }, [])
+
+  const reopenTournament = useCallback(() => {
+    dispatch({ type: 'REOPEN_TOURNAMENT' })
+    const bc = new BroadcastChannel('wlpt-live')
+    bc.postMessage({ type: 'TOURNAMENT_REOPENED' })
+    bc.close()
+  }, [])
+
   return (
-    <StoreContext.Provider value={{ ...state, addMatch, addMatches, updateMatch, deleteMatch }}>
+    <StoreContext.Provider value={{ ...state, addMatch, addMatches, updateMatch, deleteMatch, closeTournament, reopenTournament }}>
       {children}
     </StoreContext.Provider>
   )

@@ -44,6 +44,7 @@ export default function Admin() {
           Sign Out
         </button>
       </div>
+      <TournamentControl />
       <MatchEntryForm />
       <MatchHistory />
     </Shell>
@@ -295,6 +296,87 @@ function MatchForm({ initial, onSubmit, onCancel, submitLabel }) {
         <button type="submit" style={btnPrimary}>{submitLabel}</button>
       </div>
     </form>
+  )
+}
+
+function TournamentControl() {
+  const { tournamentClosed, closeTournament, reopenTournament } = useStore()
+  const [confirming, setConfirming] = useState(false)
+
+  if (tournamentClosed) {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(250,204,21,0.08), rgba(250,204,21,0.02))',
+        border: '1px solid rgba(250,204,21,0.2)',
+        borderRadius: 14, padding: 16, marginBottom: 24, textAlign: 'center',
+      }}>
+        <span style={{ fontSize: 28, display: 'block', marginBottom: 6 }}>🏆</span>
+        <p style={{
+          fontFamily: '"Barlow Condensed", sans-serif', fontSize: 16, fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: 2, color: '#FACC15', margin: '0 0 12px',
+        }}>
+          Tournament Complete
+        </p>
+        <button onClick={reopenTournament} style={{
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+          color: 'rgba(255,255,255,0.6)', padding: '10px 20px', borderRadius: 10,
+          fontSize: 13, fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 600,
+          textTransform: 'uppercase', letterSpacing: 2, cursor: 'pointer',
+        }}>
+          Reopen Tournament
+        </button>
+      </div>
+    )
+  }
+
+  if (confirming) {
+    return (
+      <div style={{
+        background: 'rgba(250,204,21,0.06)', border: '1px solid rgba(250,204,21,0.15)',
+        borderRadius: 14, padding: 16, marginBottom: 24, textAlign: 'center',
+      }}>
+        <p style={{
+          fontFamily: '"Barlow Condensed", sans-serif', fontSize: 14, fontWeight: 600,
+          color: '#FACC15', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 1,
+        }}>
+          Close tournament?
+        </p>
+        <p style={{
+          fontFamily: '"DM Mono", monospace', fontSize: 11, color: 'rgba(255,255,255,0.4)',
+          margin: '0 0 14px',
+        }}>
+          The dashboard will show the podium celebration view
+        </p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <button onClick={() => setConfirming(false)} style={btnSecondary}>Cancel</button>
+          <button onClick={() => { closeTournament(); setConfirming(false) }} style={{
+            flex: 1, padding: '12px', borderRadius: 10,
+            background: 'linear-gradient(135deg, #FACC15, #e6b800)',
+            border: 'none', color: '#040406', fontSize: 14, fontWeight: 700,
+            fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase',
+            letterSpacing: 2, cursor: 'pointer',
+          }}>
+            Close Tournament
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <button onClick={() => setConfirming(true)} style={{
+        width: '100%', padding: '14px', borderRadius: 12,
+        background: 'linear-gradient(135deg, rgba(250,204,21,0.12), rgba(250,204,21,0.04))',
+        border: '1px solid rgba(250,204,21,0.2)',
+        color: '#FACC15', fontSize: 15, fontWeight: 700,
+        fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase',
+        letterSpacing: 3, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      }}>
+        🏆 Close Tournament
+      </button>
+    </div>
   )
 }
 
