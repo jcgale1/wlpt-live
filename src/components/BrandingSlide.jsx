@@ -7,12 +7,12 @@ export default function BrandingSlide() {
   const width = useScreenWidth()
 
   // Scale QR and text based on screen
-  const qrSize = landscape ? 160 : width < 380 ? 90 : 120
-  const blockMax = landscape ? 240 : width < 380 ? 140 : 180
-  const labelSize = landscape ? 20 : 16
-  const handleSize = landscape ? 11 : 9
-  const padxHeight = landscape ? 32 : 24
-  const urlSize = landscape ? 13 : 11
+  const qrSize = landscape ? 200 : width < 380 ? 90 : 120
+  const blockMax = landscape ? 280 : width < 380 ? 140 : 180
+  const labelSize = landscape ? 24 : 16
+  const handleSize = landscape ? 13 : 9
+  const padxHeight = landscape ? 36 : 24
+  const urlSize = landscape ? 14 : 11
 
   return (
     <motion.div
@@ -24,7 +24,7 @@ export default function BrandingSlide() {
         width: '100%', height: '100%',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        gap: landscape ? 28 : 20, padding: '0 24px',
+        gap: landscape ? 14 : 20, padding: landscape ? '0 24px' : '0 24px',
       }}
     >
       <div style={{
