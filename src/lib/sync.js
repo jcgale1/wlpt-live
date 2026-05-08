@@ -1,19 +1,19 @@
 /**
- * Cross-device sync via HTTP polling (primary) + Supabase Realtime (bonus).
- * - Admin POSTs state to /api/state every 3s
- * - Dashboard GETs state from /api/state every 3s
- * - Supabase Realtime still runs as a fast-path for instant updates
+ * Cross-device sync via Supabase Realtime ONLY.
+ * - Admin tracks state in Presence (server-side, persists for channel lifetime)
+ * - Admin broadcasts on every state change (push)
+ * - Dashboard reads admin Presence on connect + listens for broadcasts
+ *
+ * No HTTP polling — in-memory serverless state is unreliable across instances.
  */
 
 import { supabase } from './supabase.js'
 
 const CHANNEL_NAME = 'wlpt-sync'
-const API_URL = '/api/state'
-const POLL_INTERVAL = 3000
 const VERSION_KEY = 'wlpt-last-applied-version'
 
 let channel = null
-let httpPoll = null
+let heartbeat = null
 let isAdmin = false
 let stateGetter = null
 let onStateCallback = null
@@ -27,171 +27,105 @@ function setLastAppliedVersion(v) {
   try { localStorage.setItem(VERSION_KEY, String(v)) } catch {}
 }
 
-// ---- HTTP polling (works on any browser, no WebSocket needed) ----
-
-function startHttpPoll() {
-  if (httpPoll) clearInterval(httpPoll)
-
-  if (isAdmin) {
-    // Admin: push state to API every 3s with monotonic version
-    const pushState = () => {
-      if (!stateGetter) return
-      const state = stateGetter()
-      myVersion = Date.now()
-      const payload = {
-        matches: state.matches,
-        tournamentStarted: state.tournamentStarted,
-        tournamentClosed: state.tournamentClosed,
-        version: myVersion,
-      }
-      fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }).catch(() => {})
-    }
-    pushState()
-    httpPoll = setInterval(pushState, POLL_INTERVAL)
-  } else {
-    // Dashboard: pull state from API every 3s, only apply if newer
-    const pullState = () => {
-      fetch(API_URL)
-        .then(r => r.json())
-        .then(data => {
-          if (!data || data.empty || !onStateCallback) return
-          // Only apply if this state is newer than what we last applied
-          const incomingVersion = data.version || 0
-          if (incomingVersion <= lastAppliedVersion) return
-          setLastAppliedVersion(incomingVersion)
-          onStateCallback(data)
-        })
-        .catch(() => {})
-    }
-    pullState()
-    setTimeout(pullState, 1000)
-    httpPoll = setInterval(pullState, POLL_INTERVAL)
-  }
-}
-
-// ---- Supabase Realtime (fast-path, bonus on top of HTTP) ----
-
-function startRealtime(onStateReceived) {
-  try {
-    channel = supabase.channel(CHANNEL_NAME, {
-      config: { broadcast: { self: false }, presence: { key: isAdmin ? 'admin' : `viewer-${Date.now()}` } },
-    })
-
-    channel.on('broadcast', { event: 'state_update' }, ({ payload }) => {
-      if (payload) onStateReceived(payload)
-    })
-
-    channel.on('broadcast', { event: 'state_request' }, () => {
-      if (isAdmin && stateGetter) {
-        broadcastState(stateGetter())
-      }
-    })
-
-    channel.on('presence', { event: 'sync' }, () => {
-      if (!isAdmin) {
-        const presenceState = channel.presenceState()
-        const adminPresence = presenceState['admin']
-        if (adminPresence && adminPresence.length > 0 && adminPresence[0].state) {
-          onStateReceived(adminPresence[0].state)
-        }
-      }
-    })
-
-    channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED' && isAdmin && stateGetter) {
-        const state = stateGetter()
-        await channel.track({
-          state: {
-            matches: state.matches,
-            tournamentStarted: state.tournamentStarted,
-            tournamentClosed: state.tournamentClosed,
-          }
-        })
-      }
-    })
-  } catch (e) {
-    console.warn('[sync] Realtime init failed, HTTP polling still active:', e)
-  }
-}
-
-// ---- Public API ----
-
-export function initSync({ onStateReceived, getState, admin }) {
-  if (channel) channel.unsubscribe()
-  if (httpPoll) clearInterval(httpPoll)
-
-  isAdmin = admin
-  stateGetter = getState
-  onStateCallback = onStateReceived
-
-  // HTTP polling is the primary sync mechanism
-  startHttpPoll()
-
-  // Supabase Realtime is a bonus fast-path
-  startRealtime(onStateReceived)
-
-  return channel
-}
-
-// Force an immediate push (for admin to trigger after reset/start/close)
-export function pushStateNow(state) {
-  if (!isAdmin) return
+function makePayload(state) {
   myVersion = Date.now()
-  const payload = {
+  return {
     matches: state.matches,
     tournamentStarted: state.tournamentStarted,
     tournamentClosed: state.tournamentClosed,
     version: myVersion,
   }
-  fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).catch(() => {})
-  // Also broadcast via Realtime for instant fallback
-  if (channel) {
-    channel.send({ type: 'broadcast', event: 'state_update', payload })
-    channel.track({ state: payload })
-  }
 }
 
-export function broadcastState(state) {
-  if (!channel) return
-  const payload = {
-    matches: state.matches,
-    tournamentStarted: state.tournamentStarted,
-    tournamentClosed: state.tournamentClosed,
-  }
+function applyIncoming(payload) {
+  if (!payload || !onStateCallback) return
+  const v = payload.version || 0
+  if (v <= lastAppliedVersion) return
+  setLastAppliedVersion(v)
+  onStateCallback(payload)
+}
+
+export function initSync({ onStateReceived, getState, admin }) {
+  if (channel) channel.unsubscribe()
+  if (heartbeat) clearInterval(heartbeat)
+
+  isAdmin = admin
+  stateGetter = getState
+  onStateCallback = onStateReceived
+
+  channel = supabase.channel(CHANNEL_NAME, {
+    config: { broadcast: { self: false }, presence: { key: admin ? 'admin' : `viewer-${Date.now()}` } },
+  })
+
+  // Listen for broadcast state updates
+  channel.on('broadcast', { event: 'state_update' }, ({ payload }) => {
+    if (!isAdmin) applyIncoming(payload)
+  })
+
+  // Admin responds to state requests
+  channel.on('broadcast', { event: 'state_request' }, () => {
+    if (isAdmin && stateGetter) {
+      const payload = makePayload(stateGetter())
+      channel.send({ type: 'broadcast', event: 'state_update', payload })
+    }
+  })
+
+  // Dashboard reads admin Presence
+  channel.on('presence', { event: 'sync' }, () => {
+    if (isAdmin) return
+    const presenceState = channel.presenceState()
+    const adminPresence = presenceState['admin']
+    if (adminPresence && adminPresence.length > 0 && adminPresence[0].state) {
+      applyIncoming(adminPresence[0].state)
+    }
+  })
+
+  channel.subscribe(async (status) => {
+    if (status !== 'SUBSCRIBED') return
+    if (isAdmin && stateGetter) {
+      // Admin: track state in presence + broadcast every 5s as heartbeat
+      const push = async () => {
+        if (!stateGetter) return
+        const payload = makePayload(stateGetter())
+        try { await channel.track({ state: payload }) } catch {}
+        channel.send({ type: 'broadcast', event: 'state_update', payload })
+      }
+      await push()
+      heartbeat = setInterval(push, 5000)
+    } else {
+      // Dashboard: request state from admin immediately + at 1s, 3s
+      const req = () => channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
+      req()
+      setTimeout(req, 1000)
+      setTimeout(req, 3000)
+    }
+  })
+
+  return channel
+}
+
+// Force an immediate push (admin only) — for reset/start/close to propagate fast
+export function pushStateNow(state) {
+  if (!isAdmin || !channel) return
+  const payload = makePayload(state)
+  try { channel.track({ state: payload }) } catch {}
   channel.send({ type: 'broadcast', event: 'state_update', payload })
-  if (isAdmin) {
-    channel.track({ state: payload })
-  }
+}
+
+// Compatibility shim
+export function broadcastState(state) {
+  pushStateNow(state)
 }
 
 export function requestState() {
-  // HTTP pull
-  fetch(API_URL)
-    .then(r => r.json())
-    .then(data => {
-      if (data && !data.empty && onStateCallback) {
-        onStateCallback(data)
-      }
-    })
-    .catch(() => {})
-  // Also try Realtime
-  if (channel) {
-    channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
-  }
+  if (!channel) return
+  channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
 }
 
 export function destroySync() {
-  if (httpPoll) {
-    clearInterval(httpPoll)
-    httpPoll = null
+  if (heartbeat) {
+    clearInterval(heartbeat)
+    heartbeat = null
   }
   if (channel) {
     channel.unsubscribe()

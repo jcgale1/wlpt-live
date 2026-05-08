@@ -187,6 +187,7 @@ export function StoreProvider({ children }) {
   }, [state.tournamentStarted])
 
   useEffect(() => {
+    // Same-browser cross-tab sync only (events from this device's other tabs)
     const bc = new BroadcastChannel('wlpt-live')
     bc.onmessage = (e) => {
       if (e.data.type === 'NEW_MATCH') dispatch({ type: 'ADD_MATCH', payload: e.data.match })
@@ -196,37 +197,7 @@ export function StoreProvider({ children }) {
       if (e.data.type === 'TOURNAMENT_STARTED') dispatch({ type: 'START_TOURNAMENT' })
       if (e.data.type === 'TOURNAMENT_RESET') dispatch({ type: 'RESET_TOURNAMENT' })
     }
-
-    const onStorage = (e) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          const matches = JSON.parse(e.newValue)
-          if (Array.isArray(matches)) dispatch({ type: 'SET_MATCHES', payload: matches })
-        } catch {}
-      }
-      if (e.key === CLOSED_KEY && e.newValue) {
-        dispatch({ type: e.newValue === 'true' ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
-      }
-      if (e.key === STARTED_KEY && e.newValue) {
-        dispatch({ type: 'SET_STARTED', payload: e.newValue === 'true' })
-      }
-    }
-    window.addEventListener('storage', onStorage)
-
-    const poll = setInterval(() => {
-      const stored = loadMatches()
-      if (stored) dispatch({ type: 'SET_MATCHES', payload: stored })
-      const closed = loadClosed()
-      dispatch({ type: closed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
-      const started = loadStarted()
-      dispatch({ type: 'SET_STARTED', payload: started })
-    }, 5000)
-
-    return () => {
-      bc.close()
-      window.removeEventListener('storage', onStorage)
-      clearInterval(poll)
-    }
+    return () => bc.close()
   }, [])
 
   // Cross-device sync via Supabase Realtime
@@ -239,17 +210,16 @@ export function StoreProvider({ children }) {
       admin: isAdmin,
       getState: () => stateRef.current,
       onStateReceived: (payload) => {
-        if (payload.matches) {
+        // Admin ignores incoming state — admin is the source of truth
+        if (isAdmin) return
+        if (Array.isArray(payload.matches)) {
           dispatch({ type: 'SET_MATCHES', payload: payload.matches })
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.matches))
         }
         if (typeof payload.tournamentStarted === 'boolean') {
           dispatch({ type: 'SET_STARTED', payload: payload.tournamentStarted })
-          localStorage.setItem(STARTED_KEY, payload.tournamentStarted ? 'true' : 'false')
         }
         if (typeof payload.tournamentClosed === 'boolean') {
           dispatch({ type: payload.tournamentClosed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
-          localStorage.setItem(CLOSED_KEY, payload.tournamentClosed ? 'true' : 'false')
         }
       },
     })
