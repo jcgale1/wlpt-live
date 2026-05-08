@@ -142,6 +142,13 @@ export default function Dashboard() {
             <line x1="12" y1="18" x2="12" y2="22" />
           </svg>
           TV
+          <span style={{
+            opacity: 0.7,
+            fontSize: 10,
+            fontFamily: '"DM Mono", monospace',
+            marginLeft: 4,
+            letterSpacing: 1,
+          }}>v{typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : 'dev'}</span>
         </div>
       )}
       <header style={{

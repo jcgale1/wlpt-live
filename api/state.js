@@ -1,9 +1,8 @@
-// Simple in-memory state store for cross-device sync
-// Admin POSTs state, dashboard GETs it
-// Vercel serverless functions share memory within a single instance
+// Simple in-memory state store with timestamp-based reconciliation
+// Admin POSTs state with version, dashboard GETs latest
 
 let cachedState = null
-let lastUpdated = 0
+let cachedVersion = 0
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -16,15 +15,20 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    cachedState = req.body
-    lastUpdated = Date.now()
-    return res.status(200).json({ ok: true, lastUpdated })
+    const body = req.body || {}
+    const incomingVersion = body.version || Date.now()
+    // Only accept newer state
+    if (incomingVersion > cachedVersion) {
+      cachedState = body
+      cachedVersion = incomingVersion
+    }
+    return res.status(200).json({ ok: true, version: cachedVersion })
   }
 
   // GET
   if (!cachedState) {
-    return res.status(200).json({ empty: true })
+    return res.status(200).json({ empty: true, version: 0 })
   }
 
-  return res.status(200).json({ ...cachedState, lastUpdated })
+  return res.status(200).json({ ...cachedState, version: cachedVersion })
 }

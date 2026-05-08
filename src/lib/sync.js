@@ -16,6 +16,8 @@ let httpPoll = null
 let isAdmin = false
 let stateGetter = null
 let onStateCallback = null
+let lastAppliedVersion = 0
+let myVersion = 0
 
 // ---- HTTP polling (works on any browser, no WebSocket needed) ----
 
@@ -23,14 +25,16 @@ function startHttpPoll() {
   if (httpPoll) clearInterval(httpPoll)
 
   if (isAdmin) {
-    // Admin: push state to API every 3s
+    // Admin: push state to API every 3s with monotonic version
     const pushState = () => {
       if (!stateGetter) return
       const state = stateGetter()
+      myVersion = Date.now()
       const payload = {
         matches: state.matches,
         tournamentStarted: state.tournamentStarted,
         tournamentClosed: state.tournamentClosed,
+        version: myVersion,
       }
       fetch(API_URL, {
         method: 'POST',
@@ -41,14 +45,17 @@ function startHttpPoll() {
     pushState()
     httpPoll = setInterval(pushState, POLL_INTERVAL)
   } else {
-    // Dashboard: pull state from API every 3s
+    // Dashboard: pull state from API every 3s, only apply if newer
     const pullState = () => {
       fetch(API_URL)
         .then(r => r.json())
         .then(data => {
-          if (data && !data.empty && onStateCallback) {
-            onStateCallback(data)
-          }
+          if (!data || data.empty || !onStateCallback) return
+          // Only apply if this state is newer than what we last applied
+          const incomingVersion = data.version || 0
+          if (incomingVersion <= lastAppliedVersion) return
+          lastAppliedVersion = incomingVersion
+          onStateCallback(data)
         })
         .catch(() => {})
     }
