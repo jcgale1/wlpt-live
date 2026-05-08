@@ -9,6 +9,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/tv" element={<Dashboard />} />
+        <Route path="/tv2" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
