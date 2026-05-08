@@ -13,7 +13,7 @@ const SPOTLIGHT_DURATION = 10 * 60 * 1000 // 10 min per match
  * Matches queue by upload order — each gets a dedicated 10-min window.
  * e.g. 3 matches uploaded at 14:00 → match1 14:00-14:10, match2 14:10-14:20, match3 14:20-14:30
  */
-function getSpotlightMatch(matches) {
+export function getSpotlightMatch(matches) {
   // Sort by timestamp ascending (upload order)
   const sorted = [...matches].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
   const now = Date.now()
@@ -51,7 +51,8 @@ function countQueued(sorted, now) {
 }
 
 export function hasSpotlightMatch(matches) {
-  return getSpotlightMatch(matches) !== null
+  // Show slide if there's an active spotlight, OR any matches at all (falls back to most recent)
+  return matches.length > 0
 }
 
 export default function RecentMatchSlide() {
@@ -59,14 +60,20 @@ export default function RecentMatchSlide() {
   const landscape = useIsLandscape()
   const [now, setNow] = useState(Date.now())
 
-  // Tick every 10s so spotlight transitions happen on time
+  // Tick every 5s so spotlight transitions happen on time
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 10000)
+    const t = setInterval(() => setNow(Date.now()), 5000)
     return () => clearInterval(t)
   }, [])
 
-  const spotlight = getSpotlightMatch(matches)
-  if (!spotlight) return null
+  // Fall back to most recent match if no spotlight active
+  const spotlight = getSpotlightMatch(matches) || (matches.length > 0 ? {
+    match: [...matches].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0],
+    queuePosition: 1,
+    queueTotal: 1,
+  } : null)
+
+  if (!spotlight || !spotlight.match) return null
 
   const { match, queuePosition, queueTotal } = spotlight
   const team1 = TEAMS.find(t => t.id === match.team1Id)
