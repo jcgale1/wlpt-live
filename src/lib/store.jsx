@@ -148,7 +148,7 @@ function loadMatches() {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored)
-      if (parsed.length > 0 && parsed[0].playerStats) return parsed
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed
     }
   } catch {}
   return null
