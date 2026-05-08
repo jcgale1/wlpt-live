@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
+import { useIsLandscape } from '../lib/useMediaQuery.js'
 
 const BRAND_COLORS = ['#FACC15', '#E60150', '#4ade80', '#ffffff', '#60a5fa']
 const MEDAL_COLORS = ['#FACC15', '#C0C0C0', '#CD7F32']
@@ -43,6 +44,7 @@ function fireStars() {
 
 export default function PodiumSlide() {
   const { leaderboard, playerLeaderboard } = useStore()
+  const landscape = useIsLandscape()
   const top3 = leaderboard.slice(0, 3)
   const intervalRef = useRef(null)
   const [showContent, setShowContent] = useState(false)
@@ -135,9 +137,9 @@ export default function PodiumSlide() {
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
-        gap: 6,
+        gap: landscape ? 16 : 6,
         width: '100%',
-        maxWidth: 400,
+        maxWidth: landscape ? 700 : 400,
         padding: '0 12px',
       }}>
         {podiumOrder.map((entry, i) => {
@@ -162,8 +164,8 @@ export default function PodiumSlide() {
             >
               {/* Team image */}
               <div style={{
-                width: rank === 0 ? 100 : 80,
-                height: rank === 0 ? 100 : 80,
+                width: rank === 0 ? (landscape ? 130 : 100) : (landscape ? 105 : 80),
+                height: rank === 0 ? (landscape ? 130 : 100) : (landscape ? 105 : 80),
                 borderRadius: '50%',
                 overflow: 'hidden',
                 border: `3px solid ${MEDAL_COLORS[rank]}`,

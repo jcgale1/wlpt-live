@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
+import { useIsLandscape } from '../lib/useMediaQuery.js'
 import PlayerAvatar from './PlayerAvatar.jsx'
 
 const SPOTLIGHT_DURATION = 10 * 60 * 1000 // 10 min per match
@@ -55,6 +56,7 @@ export function hasSpotlightMatch(matches) {
 
 export default function RecentMatchSlide() {
   const { matches } = useStore()
+  const landscape = useIsLandscape()
   const [now, setNow] = useState(Date.now())
 
   // Tick every 10s so spotlight transitions happen on time
@@ -85,7 +87,7 @@ export default function RecentMatchSlide() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 16px' }}
+      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 16px', maxWidth: landscape ? 700 : undefined, margin: landscape ? '0 auto' : undefined }}
     >
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 10 }}>

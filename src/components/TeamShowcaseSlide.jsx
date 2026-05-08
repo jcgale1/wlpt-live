@@ -3,11 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
 import PlayerAvatar from './PlayerAvatar.jsx'
+import { useIsLandscape } from '../lib/useMediaQuery.js'
 
 const ROTATE_INTERVAL = 4000
 
+// Per-team image tuning — some AI images need different crop points
+const IMAGE_POSITIONS = {
+  'cech-cudicini': 'center 40%',
+}
+
 export default function TeamShowcaseSlide() {
   const [index, setIndex] = useState(0)
+  const landscape = useIsLandscape()
 
   useEffect(() => {
     const t = setInterval(() => setIndex(prev => (prev + 1) % TEAMS.length), ROTATE_INTERVAL)
@@ -15,6 +22,7 @@ export default function TeamShowcaseSlide() {
   }, [])
 
   const team = TEAMS[index]
+  const imgPos = IMAGE_POSITIONS[team.id] || 'center 30%'
 
   return (
     <motion.div
@@ -26,7 +34,7 @@ export default function TeamShowcaseSlide() {
     >
       <h2 style={{
         fontFamily: '"Barlow Condensed", sans-serif',
-        fontSize: 24,
+        fontSize: landscape ? 32 : 24,
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: 3,
@@ -43,7 +51,7 @@ export default function TeamShowcaseSlide() {
         color: 'rgba(255,255,255,0.3)',
         letterSpacing: 2,
         textTransform: 'uppercase',
-        marginBottom: 16,
+        marginBottom: landscape ? 20 : 16,
       }}>
         {index + 1} / {TEAMS.length} pairs
       </span>
@@ -57,15 +65,23 @@ export default function TeamShowcaseSlide() {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
             width: '100%',
-            maxWidth: 360,
+            maxWidth: landscape ? 700 : 360,
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 16,
             overflow: 'hidden',
+            display: landscape ? 'flex' : 'block',
+            flexDirection: landscape ? 'row' : undefined,
           }}
         >
           {/* Hero image */}
-          <div style={{ position: 'relative', height: 180 }}>
+          <div style={{
+            position: 'relative',
+            height: landscape ? 'auto' : 180,
+            width: landscape ? '55%' : '100%',
+            minHeight: landscape ? 220 : undefined,
+            flexShrink: 0,
+          }}>
             <img
               src={team.image}
               alt={team.players.join(' & ')}
@@ -73,32 +89,53 @@ export default function TeamShowcaseSlide() {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                objectPosition: 'center 30%',
+                objectPosition: imgPos,
                 display: 'block',
               }}
             />
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(180deg, transparent 40%, rgba(4,4,6,0.9) 100%)',
+              background: landscape
+                ? 'linear-gradient(90deg, transparent 50%, rgba(4,4,6,0.9) 100%)'
+                : 'linear-gradient(180deg, transparent 40%, rgba(4,4,6,0.9) 100%)',
             }} />
-            <div style={{
-              position: 'absolute', bottom: 12, left: 14, right: 14,
-              display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-            }}>
-              <span style={{
-                fontFamily: '"Barlow Condensed", sans-serif',
-                fontSize: 20, fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: 1.5,
-                color: '#fff',
-                textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+            {!landscape && (
+              <div style={{
+                position: 'absolute', bottom: 12, left: 14, right: 14,
               }}>
-                {displayName(team.players[0])} & {displayName(team.players[1])}
-              </span>
-            </div>
+                <span style={{
+                  fontFamily: '"Barlow Condensed", sans-serif',
+                  fontSize: 20, fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: 1.5,
+                  color: '#fff',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                }}>
+                  {displayName(team.players[0])} & {displayName(team.players[1])}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Player cards */}
-          <div style={{ display: 'flex', padding: '14px 12px', gap: 10 }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: landscape ? 'column' : 'row',
+            padding: landscape ? '20px 24px' : '14px 12px',
+            gap: landscape ? 14 : 10,
+            flex: landscape ? 1 : undefined,
+            justifyContent: 'center',
+          }}>
+            {landscape && (
+              <span style={{
+                fontFamily: '"Barlow Condensed", sans-serif',
+                fontSize: 22, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: 2,
+                color: '#fff',
+                marginBottom: 4,
+              }}>
+                {displayName(team.players[0])} & {displayName(team.players[1])}
+              </span>
+            )}
             {team.players.map((name, i) => (
               <motion.div
                 key={name}
@@ -106,22 +143,22 @@ export default function TeamShowcaseSlide() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
                 style={{
-                  flex: 1,
+                  flex: landscape ? undefined : 1,
                   display: 'flex',
-                  flexDirection: 'column',
+                  flexDirection: landscape ? 'row' : 'column',
                   alignItems: 'center',
-                  gap: 6,
-                  padding: '10px 0',
+                  gap: landscape ? 14 : 6,
+                  padding: landscape ? '10px 14px' : '10px 0',
                   background: 'rgba(255,255,255,0.02)',
                   borderRadius: 10,
                 }}
               >
-                <PlayerAvatar name={name} size={48} />
+                <PlayerAvatar name={name} size={landscape ? 56 : 48} />
                 <span style={{
                   fontFamily: '"Barlow Condensed", sans-serif',
-                  fontSize: 13, fontWeight: 700,
+                  fontSize: landscape ? 16 : 13, fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: 0.5,
-                  color: '#fff', textAlign: 'center',
+                  color: '#fff', textAlign: landscape ? 'left' : 'center',
                 }}>
                   {displayName(name)}
                 </span>

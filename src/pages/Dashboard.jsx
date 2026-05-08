@@ -12,6 +12,7 @@ import StatsBar from '../components/StatsBar.jsx'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
+import { useIsLandscape } from '../lib/useMediaQuery.js'
 
 const BASE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
 const PRE_SLIDES = [TeamShowcaseSlide, BrandingSlide]
@@ -76,6 +77,8 @@ export default function Dashboard() {
     return () => clearTimeout(t)
   }, [active])
 
+  const landscape = useIsLandscape()
+
   // Get winner team name for badge
   const winnerTeam = tournamentClosed && leaderboard.length > 0
     ? TEAMS.find(t => t.id === leaderboard[0].teamId)
@@ -98,45 +101,49 @@ export default function Dashboard() {
       }} />
 
       <header style={{
-        padding: '16px 20px 12px',
+        padding: landscape ? '10px 24px 6px' : '16px 20px 12px',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: landscape ? 'row' : 'column',
         alignItems: 'center',
-        gap: 6,
+        justifyContent: landscape ? 'center' : undefined,
+        gap: landscape ? 16 : 6,
         position: 'relative',
         zIndex: 2,
+        flexWrap: landscape ? 'wrap' : undefined,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            fontSize: 11, fontFamily: '"Barlow Condensed", sans-serif',
-            fontWeight: 700,
-            color: 'rgba(255,255,255,0.5)',
-            textTransform: 'uppercase', letterSpacing: 3,
-          }}>EA7 Armani</span>
-          <span style={{
-            fontSize: 10, fontFamily: '"DM Mono", monospace',
-            color: 'rgba(255,255,255,0.25)',
-            textTransform: 'uppercase', letterSpacing: 2,
-          }}>presents</span>
-        </div>
+        {!landscape && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              fontSize: 11, fontFamily: '"Barlow Condensed", sans-serif',
+              fontWeight: 700,
+              color: 'rgba(255,255,255,0.5)',
+              textTransform: 'uppercase', letterSpacing: 3,
+            }}>EA7 Armani</span>
+            <span style={{
+              fontSize: 10, fontFamily: '"DM Mono", monospace',
+              color: 'rgba(255,255,255,0.25)',
+              textTransform: 'uppercase', letterSpacing: 2,
+            }}>presents</span>
+          </div>
+        )}
 
         <h1 style={{
           fontFamily: '"Barlow Condensed", sans-serif',
-          fontSize: 20,
+          fontSize: landscape ? 18 : 20,
           fontWeight: 800,
           textTransform: 'uppercase',
-          letterSpacing: 4,
+          letterSpacing: landscape ? 3 : 4,
           color: '#fff',
           margin: 0,
           textAlign: 'center',
           lineHeight: 1.2,
         }}>
-          World Legends Padel Tour
+          {landscape ? 'WLPT' : 'World Legends Padel Tour'}
         </h1>
 
         <span style={{
           fontFamily: '"Barlow Condensed", sans-serif',
-          fontSize: 14,
+          fontSize: landscape ? 13 : 14,
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: 2,
@@ -147,7 +154,7 @@ export default function Dashboard() {
 
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          marginTop: 2,
+          marginTop: landscape ? 0 : 2,
         }}>
           <div style={{
             width: 6, height: 6, borderRadius: '50%',

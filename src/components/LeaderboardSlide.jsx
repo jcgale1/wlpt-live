@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
+import { useIsLandscape } from '../lib/useMediaQuery.js'
 import TeamBadge from './TeamBadge.jsx'
 
 export default function LeaderboardSlide() {
   const { leaderboard } = useStore()
+  const landscape = useIsLandscape()
 
   return (
     <motion.div
@@ -11,7 +13,7 @@ export default function LeaderboardSlide() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '0 20px' }}
+      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '0 20px', maxWidth: landscape ? 700 : undefined, margin: landscape ? '0 auto' : undefined }}
     >
       <h2 style={{
         fontFamily: '"Barlow Condensed", sans-serif',

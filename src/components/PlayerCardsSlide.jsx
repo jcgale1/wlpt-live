@@ -2,9 +2,11 @@ import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
+import { useIsLandscape } from '../lib/useMediaQuery.js'
 
 export default function PlayerCardsSlide() {
   const { leaderboard, playerLeaderboard } = useStore()
+  const landscape = useIsLandscape()
   const top3 = leaderboard.slice(0, 3)
 
   function getPlayerStats(name) {
@@ -17,7 +19,7 @@ export default function PlayerCardsSlide() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 16px' }}
+      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 16px', maxWidth: landscape ? 800 : undefined, margin: landscape ? '0 auto' : undefined }}
     >
       <h2 style={{
         fontFamily: '"Barlow Condensed", sans-serif',
@@ -32,7 +34,7 @@ export default function PlayerCardsSlide() {
         Top Teams
       </h2>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 }}>
+      <div style={{ display: 'flex', flexDirection: landscape ? 'row' : 'column', gap: 12, width: '100%', maxWidth: landscape ? 800 : 380 }}>
         {top3.map((entry, i) => {
           const team = TEAMS.find(t => t.id === entry.teamId)
           if (!team) return null
