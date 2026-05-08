@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import LeaderboardSlide from '../components/LeaderboardSlide.jsx'
 import IndividualLeaderboardSlide from '../components/IndividualLeaderboardSlide.jsx'
@@ -78,6 +78,21 @@ export default function Dashboard() {
   }, [active])
 
   const landscape = useIsLandscape()
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen()
+    }
+  }, [])
 
   // Get winner team name for badge
   const winnerTeam = tournamentClosed && leaderboard.length > 0
@@ -111,6 +126,38 @@ export default function Dashboard() {
         zIndex: 2,
         flexWrap: landscape ? 'wrap' : undefined,
       }}>
+        {/* Fullscreen toggle */}
+        <button
+          onClick={toggleFullscreen}
+          style={{
+            position: 'absolute',
+            top: landscape ? 8 : 14,
+            right: 16,
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 8,
+            width: 32, height: 32,
+            display: 'grid', placeItems: 'center',
+            cursor: 'pointer',
+            color: 'rgba(255,255,255,0.4)',
+            fontSize: 14,
+            padding: 0,
+            zIndex: 10,
+          }}
+          title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          {isFullscreen ? (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <polyline points="6,1 6,6 1,6" /><polyline points="10,15 10,10 15,10" />
+              <polyline points="15,6 10,6 10,1" /><polyline points="1,10 6,10 6,15" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <polyline points="1,6 1,1 6,1" /><polyline points="15,10 15,15 10,15" />
+              <polyline points="10,1 15,1 15,6" /><polyline points="6,15 1,15 1,10" />
+            </svg>
+          )}
+        </button>
         {!landscape && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{

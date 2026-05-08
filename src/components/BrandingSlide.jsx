@@ -6,13 +6,14 @@ export default function BrandingSlide() {
   const landscape = useIsLandscape()
   const width = useScreenWidth()
 
-  // Scale QR and text based on screen
-  const qrSize = landscape ? 200 : width < 380 ? 90 : 120
-  const blockMax = landscape ? 280 : width < 380 ? 140 : 180
-  const labelSize = landscape ? 24 : 16
-  const handleSize = landscape ? 13 : 9
-  const padxHeight = landscape ? 36 : 24
-  const urlSize = landscape ? 14 : 11
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800
+  // Scale QR to fill available height on landscape
+  const qrSize = landscape ? Math.min(Math.round(vh * 0.38), 320) : width < 380 ? 90 : 120
+  const blockMax = landscape ? 400 : width < 380 ? 140 : 180
+  const labelSize = landscape ? 28 : 16
+  const handleSize = landscape ? 14 : 9
+  const padxHeight = landscape ? 40 : 24
+  const urlSize = landscape ? 16 : 11
 
   return (
     <motion.div
@@ -62,7 +63,7 @@ export default function BrandingSlide() {
         />
       </div>
 
-      <div style={{ width: 60, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+      {!landscape && <div style={{ width: 60, height: 1, background: 'rgba(255,255,255,0.08)' }} />}
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -84,20 +85,6 @@ export default function BrandingSlide() {
             worldlegendspadeltour.com
           </span>
         </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9, duration: 0.5 }}
-        style={{ textAlign: 'center' }}
-      >
-        <p style={{
-          fontFamily: '"DM Mono", monospace', fontSize: 10,
-          color: 'rgba(255,255,255,0.15)', letterSpacing: 1, margin: 0,
-        }}>
-          8-9 MAY 2026 &middot; EPSOM, LONDON
-        </p>
       </motion.div>
     </motion.div>
   )
