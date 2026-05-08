@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
 import { TEAMS, ALL_PLAYERS } from './players.js'
-import { initSync, broadcastState, destroySync } from './sync.js'
+import { initSync, broadcastState, destroySync, pushStateNow } from './sync.js'
 
 const StoreContext = createContext()
 const CLOSED_KEY = 'wlpt-tournament-closed'
@@ -290,21 +290,24 @@ export function StoreProvider({ children }) {
     const bc = new BroadcastChannel('wlpt-live')
     bc.postMessage({ type: 'TOURNAMENT_CLOSED' })
     bc.close()
-  }, [])
+    if (isAdmin) pushStateNow({ ...stateRef.current, tournamentClosed: true })
+  }, [isAdmin])
 
   const reopenTournament = useCallback(() => {
     dispatch({ type: 'REOPEN_TOURNAMENT' })
     const bc = new BroadcastChannel('wlpt-live')
     bc.postMessage({ type: 'TOURNAMENT_REOPENED' })
     bc.close()
-  }, [])
+    if (isAdmin) pushStateNow({ ...stateRef.current, tournamentClosed: false })
+  }, [isAdmin])
 
   const startTournament = useCallback(() => {
     dispatch({ type: 'START_TOURNAMENT' })
     const bc = new BroadcastChannel('wlpt-live')
     bc.postMessage({ type: 'TOURNAMENT_STARTED' })
     bc.close()
-  }, [])
+    if (isAdmin) pushStateNow({ matches: [], tournamentStarted: true, tournamentClosed: false })
+  }, [isAdmin])
 
   const resetTournament = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY)
@@ -314,7 +317,11 @@ export function StoreProvider({ children }) {
     const bc = new BroadcastChannel('wlpt-live')
     bc.postMessage({ type: 'TOURNAMENT_RESET' })
     bc.close()
-  }, [])
+    // Immediate push so dashboards see reset within 1s instead of 3s
+    if (isAdmin) {
+      pushStateNow({ matches: [], tournamentStarted: false, tournamentClosed: false })
+    }
+  }, [isAdmin])
 
   return (
     <StoreContext.Provider value={{ ...state, addMatch, addMatches, updateMatch, deleteMatch, closeTournament, reopenTournament, startTournament, resetTournament }}>

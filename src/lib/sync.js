@@ -10,14 +10,22 @@ import { supabase } from './supabase.js'
 const CHANNEL_NAME = 'wlpt-sync'
 const API_URL = '/api/state'
 const POLL_INTERVAL = 3000
+const VERSION_KEY = 'wlpt-last-applied-version'
 
 let channel = null
 let httpPoll = null
 let isAdmin = false
 let stateGetter = null
 let onStateCallback = null
-let lastAppliedVersion = 0
+let lastAppliedVersion = (() => {
+  try { return parseInt(localStorage.getItem(VERSION_KEY) || '0', 10) || 0 } catch { return 0 }
+})()
 let myVersion = 0
+
+function setLastAppliedVersion(v) {
+  lastAppliedVersion = v
+  try { localStorage.setItem(VERSION_KEY, String(v)) } catch {}
+}
 
 // ---- HTTP polling (works on any browser, no WebSocket needed) ----
 
@@ -54,7 +62,7 @@ function startHttpPoll() {
           // Only apply if this state is newer than what we last applied
           const incomingVersion = data.version || 0
           if (incomingVersion <= lastAppliedVersion) return
-          lastAppliedVersion = incomingVersion
+          setLastAppliedVersion(incomingVersion)
           onStateCallback(data)
         })
         .catch(() => {})
@@ -127,6 +135,28 @@ export function initSync({ onStateReceived, getState, admin }) {
   startRealtime(onStateReceived)
 
   return channel
+}
+
+// Force an immediate push (for admin to trigger after reset/start/close)
+export function pushStateNow(state) {
+  if (!isAdmin) return
+  myVersion = Date.now()
+  const payload = {
+    matches: state.matches,
+    tournamentStarted: state.tournamentStarted,
+    tournamentClosed: state.tournamentClosed,
+    version: myVersion,
+  }
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(() => {})
+  // Also broadcast via Realtime for instant fallback
+  if (channel) {
+    channel.send({ type: 'broadcast', event: 'state_update', payload })
+    channel.track({ state: payload })
+  }
 }
 
 export function broadcastState(state) {

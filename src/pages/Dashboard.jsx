@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import LeaderboardSlide from '../components/LeaderboardSlide.jsx'
-import IndividualLeaderboardSlide from '../components/IndividualLeaderboardSlide.jsx'
-import PlayerCardsSlide from '../components/PlayerCardsSlide.jsx'
 import MatchFeedSlide from '../components/MatchFeedSlide.jsx'
 import BrandingSlide from '../components/BrandingSlide.jsx'
 import PodiumSlide from '../components/PodiumSlide.jsx'
@@ -14,7 +12,7 @@ import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
 import { useIsLandscape } from '../lib/useMediaQuery.js'
 
-const BASE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
+const BASE_SLIDES = [LeaderboardSlide, MatchFeedSlide, BrandingSlide]
 const PRE_SLIDES = [TeamShowcaseSlide, TeamShowcaseSlide, TeamShowcaseSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
 const PRE_SLIDE_DURATION = 10000
@@ -289,7 +287,7 @@ export default function Dashboard() {
               color: 'rgba(255,255,255,0.2)',
               letterSpacing: 0.5,
             }}>
-              W wins · G games · MP played · WNR winners · ERR errors · KM distance
+              W wins · G games · MP played
             </span>
           </div>
         </>
