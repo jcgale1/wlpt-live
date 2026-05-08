@@ -43,15 +43,12 @@ function fireStars() {
 }
 
 export default function PodiumSlide() {
-  const { leaderboard, playerLeaderboard } = useStore()
+  const { leaderboard } = useStore()
   const landscape = useIsLandscape()
   const top3 = leaderboard.slice(0, 3)
   const intervalRef = useRef(null)
   const [showContent, setShowContent] = useState(false)
 
-  function getPlayerStats(name) {
-    return playerLeaderboard.find(p => p.name === name) || { winners: 0, errors: 0, distance: 0 }
-  }
 
   useEffect(() => {
     // Initial big burst
@@ -257,7 +254,6 @@ export default function PodiumSlide() {
                   gap: 4,
                 }}>
                   {team.players.map(name => {
-                    const ps = getPlayerStats(name)
                     return (
                       <div key={name} style={{
                         textAlign: 'center',
