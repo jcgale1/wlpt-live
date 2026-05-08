@@ -7,17 +7,20 @@ import MatchFeedSlide from '../components/MatchFeedSlide.jsx'
 import BrandingSlide from '../components/BrandingSlide.jsx'
 import PodiumSlide from '../components/PodiumSlide.jsx'
 import RecentMatchSlide, { hasSpotlightMatch } from '../components/RecentMatchSlide.jsx'
+import TeamShowcaseSlide from '../components/TeamShowcaseSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
 
 const BASE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
+const PRE_SLIDES = [TeamShowcaseSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
+const PRE_SLIDE_DURATION = 16000
 const CLOSED_SLIDE_DURATION = 20000
 
 export default function Dashboard() {
-  const { tournamentClosed, leaderboard, matches } = useStore()
+  const { tournamentStarted, tournamentClosed, leaderboard, matches } = useStore()
   const [now, setNow] = useState(Date.now())
   const [active, setActive] = useState(0)
   const timerRef = useRef(null)
@@ -32,14 +35,15 @@ export default function Dashboard() {
   // Check if any match is currently in its spotlight window
   const hasRecentMatch = hasSpotlightMatch(matches)
 
-  // Build slides array
+  // Build slides array based on tournament state
   const slides = (() => {
+    if (!tournamentStarted) return PRE_SLIDES
     const base = [...BASE_SLIDES]
     if (hasRecentMatch) base.unshift(RecentMatchSlide)
     if (tournamentClosed) base.unshift(PodiumSlide)
     return base
   })()
-  const duration = tournamentClosed ? CLOSED_SLIDE_DURATION : SLIDE_DURATION
+  const duration = !tournamentStarted ? PRE_SLIDE_DURATION : tournamentClosed ? CLOSED_SLIDE_DURATION : SLIDE_DURATION
 
   // Reset carousel when slides array changes length
   const resetTimer = useCallback(() => {
@@ -147,36 +151,39 @@ export default function Dashboard() {
         }}>
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: tournamentClosed ? '#FACC15' : '#4ade80',
-            animation: tournamentClosed ? 'none' : 'pulse 2s infinite',
+            background: !tournamentStarted ? '#60a5fa' : tournamentClosed ? '#FACC15' : '#4ade80',
+            animation: !tournamentStarted ? 'pulse 2s infinite' : tournamentClosed ? 'none' : 'pulse 2s infinite',
           }} />
           <span style={{
             fontSize: 10, fontFamily: '"DM Mono", monospace',
             color: 'rgba(255,255,255,0.4)',
             textTransform: 'uppercase', letterSpacing: 1,
           }}>
-            {tournamentClosed ? 'COMPLETE' : 'LIVE'} &middot; EPSOM, LONDON &middot; 8-9 MAY
+            {!tournamentStarted ? 'COMING UP' : tournamentClosed ? 'COMPLETE' : 'LIVE'} &middot; EPSOM, LONDON &middot; 8-9 MAY
           </span>
         </div>
       </header>
 
-      <StatsBar />
-
-      <div style={{
-        textAlign: 'center',
-        padding: '6px 16px 0',
-        position: 'relative',
-        zIndex: 2,
-      }}>
-        <span style={{
-          fontFamily: '"DM Mono", monospace',
-          fontSize: 8,
-          color: 'rgba(255,255,255,0.2)',
-          letterSpacing: 0.5,
-        }}>
-          W wins · G games · MP played · WNR winners · ERR errors · KM distance
-        </span>
-      </div>
+      {tournamentStarted && (
+        <>
+          <StatsBar />
+          <div style={{
+            textAlign: 'center',
+            padding: '6px 16px 0',
+            position: 'relative',
+            zIndex: 2,
+          }}>
+            <span style={{
+              fontFamily: '"DM Mono", monospace',
+              fontSize: 8,
+              color: 'rgba(255,255,255,0.2)',
+              letterSpacing: 0.5,
+            }}>
+              W wins · G games · MP played · WNR winners · ERR errors · KM distance
+            </span>
+          </div>
+        </>
+      )}
 
       {tournamentClosed && winnerTeam && (
         <div style={{

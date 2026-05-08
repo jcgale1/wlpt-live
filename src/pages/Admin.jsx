@@ -300,9 +300,80 @@ function MatchForm({ initial, onSubmit, onCancel, submitLabel }) {
 }
 
 function TournamentControl() {
-  const { tournamentClosed, closeTournament, reopenTournament } = useStore()
-  const [confirming, setConfirming] = useState(false)
+  const { tournamentStarted, tournamentClosed, closeTournament, reopenTournament, startTournament, resetTournament } = useStore()
+  const [confirming, setConfirming] = useState(null) // 'start' | 'close' | 'reset' | null
 
+  // Pre-tournament: show Start button
+  if (!tournamentStarted) {
+    if (confirming === 'start') {
+      return (
+        <div style={{
+          background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.2)',
+          borderRadius: 14, padding: 16, marginBottom: 24, textAlign: 'center',
+        }}>
+          <p style={{
+            fontFamily: '"Barlow Condensed", sans-serif', fontSize: 14, fontWeight: 600,
+            color: '#4ade80', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 1,
+          }}>
+            Start tournament?
+          </p>
+          <p style={{
+            fontFamily: '"DM Mono", monospace', fontSize: 11, color: 'rgba(255,255,255,0.4)',
+            margin: '0 0 14px',
+          }}>
+            Clears all data and switches to the live leaderboard
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <button onClick={() => setConfirming(null)} style={btnSecondary}>Cancel</button>
+            <button onClick={() => { startTournament(); setConfirming(null) }} style={{
+              flex: 1, padding: '12px', borderRadius: 10,
+              background: 'linear-gradient(135deg, #4ade80, #22c55e)',
+              border: 'none', color: '#040406', fontSize: 14, fontWeight: 700,
+              fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase',
+              letterSpacing: 2, cursor: 'pointer',
+            }}>
+              Start Tournament
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div style={{ marginBottom: 24 }}>
+        <div style={{
+          background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.15)',
+          borderRadius: 14, padding: 16, textAlign: 'center', marginBottom: 10,
+        }}>
+          <span style={{ fontSize: 28, display: 'block', marginBottom: 6 }}>🎾</span>
+          <p style={{
+            fontFamily: '"Barlow Condensed", sans-serif', fontSize: 16, fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: 2, color: '#60a5fa', margin: '0 0 4px',
+          }}>
+            Pre-Tournament
+          </p>
+          <p style={{
+            fontFamily: '"DM Mono", monospace', fontSize: 10, color: 'rgba(255,255,255,0.35)',
+            margin: '0 0 14px',
+          }}>
+            Dashboard is showing the player preview
+          </p>
+          <button onClick={() => setConfirming('start')} style={{
+            width: '100%', padding: '14px', borderRadius: 10,
+            background: 'linear-gradient(135deg, #4ade80, #22c55e)',
+            border: 'none', color: '#040406', fontSize: 15, fontWeight: 700,
+            fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase',
+            letterSpacing: 3, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            ▶ Start Tournament
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Tournament complete
   if (tournamentClosed) {
     return (
       <div style={{
@@ -317,19 +388,49 @@ function TournamentControl() {
         }}>
           Tournament Complete
         </p>
-        <button onClick={reopenTournament} style={{
-          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-          color: 'rgba(255,255,255,0.6)', padding: '10px 20px', borderRadius: 10,
-          fontSize: 13, fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 600,
-          textTransform: 'uppercase', letterSpacing: 2, cursor: 'pointer',
-        }}>
-          Reopen Tournament
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={reopenTournament} style={{
+            flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+            color: 'rgba(255,255,255,0.6)', padding: '10px 20px', borderRadius: 10,
+            fontSize: 13, fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 600,
+            textTransform: 'uppercase', letterSpacing: 2, cursor: 'pointer',
+          }}>
+            Reopen
+          </button>
+          {confirming === 'reset' ? (
+            <div style={{ flex: 2, display: 'flex', gap: 6 }}>
+              <button onClick={() => { resetTournament(); setConfirming(null) }} style={{
+                flex: 1, background: 'rgba(230,1,80,0.2)', border: '1px solid #E60150',
+                color: '#E60150', padding: '10px', borderRadius: 10,
+                fontSize: 11, fontFamily: '"DM Mono", monospace', cursor: 'pointer',
+              }}>
+                Confirm Reset
+              </button>
+              <button onClick={() => setConfirming(null)} style={{
+                background: 'none', border: 'none',
+                color: 'rgba(255,255,255,0.3)', padding: '10px',
+                fontSize: 11, fontFamily: '"DM Mono", monospace', cursor: 'pointer',
+              }}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirming('reset')} style={{
+              flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+              color: 'rgba(255,255,255,0.3)', padding: '10px 20px', borderRadius: 10,
+              fontSize: 13, fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 600,
+              textTransform: 'uppercase', letterSpacing: 2, cursor: 'pointer',
+            }}>
+              Reset
+            </button>
+          )}
+        </div>
       </div>
     )
   }
 
-  if (confirming) {
+  // Tournament live: close button
+  if (confirming === 'close') {
     return (
       <div style={{
         background: 'rgba(250,204,21,0.06)', border: '1px solid rgba(250,204,21,0.15)',
@@ -348,8 +449,8 @@ function TournamentControl() {
           The dashboard will show the podium celebration view
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <button onClick={() => setConfirming(false)} style={btnSecondary}>Cancel</button>
-          <button onClick={() => { closeTournament(); setConfirming(false) }} style={{
+          <button onClick={() => setConfirming(null)} style={btnSecondary}>Cancel</button>
+          <button onClick={() => { closeTournament(); setConfirming(null) }} style={{
             flex: 1, padding: '12px', borderRadius: 10,
             background: 'linear-gradient(135deg, #FACC15, #e6b800)',
             border: 'none', color: '#040406', fontSize: 14, fontWeight: 700,
@@ -365,7 +466,7 @@ function TournamentControl() {
 
   return (
     <div style={{ marginBottom: 24 }}>
-      <button onClick={() => setConfirming(true)} style={{
+      <button onClick={() => setConfirming('close')} style={{
         width: '100%', padding: '14px', borderRadius: 12,
         background: 'linear-gradient(135deg, rgba(250,204,21,0.12), rgba(250,204,21,0.04))',
         border: '1px solid rgba(250,204,21,0.2)',

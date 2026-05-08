@@ -3,6 +3,7 @@ import { TEAMS, ALL_PLAYERS } from './players.js'
 
 const StoreContext = createContext()
 const CLOSED_KEY = 'wlpt-tournament-closed'
+const STARTED_KEY = 'wlpt-tournament-started'
 
 function generateDummyData() {
   const matches = []
@@ -121,6 +122,16 @@ function reducer(state, action) {
       return { ...state, tournamentClosed: true }
     case 'REOPEN_TOURNAMENT':
       return { ...state, tournamentClosed: false }
+    case 'START_TOURNAMENT': {
+      const matches = []
+      return { ...state, tournamentStarted: true, tournamentClosed: false, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
+    }
+    case 'RESET_TOURNAMENT': {
+      const matches = []
+      return { ...state, tournamentStarted: false, tournamentClosed: false, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
+    }
+    case 'SET_STARTED':
+      return { ...state, tournamentStarted: action.payload }
     default:
       return state
   }
@@ -143,14 +154,20 @@ function loadClosed() {
   try { return localStorage.getItem(CLOSED_KEY) === 'true' } catch { return false }
 }
 
+function loadStarted() {
+  try { return localStorage.getItem(STARTED_KEY) === 'true' } catch { return false }
+}
+
 export function StoreProvider({ children }) {
   const saved = loadMatches()
-  const initial = saved || generateDummyData()
+  const started = loadStarted()
+  const initial = saved || (started ? [] : generateDummyData())
   const [state, dispatch] = useReducer(reducer, {
     matches: initial,
     leaderboard: buildLeaderboard(initial),
     playerLeaderboard: buildPlayerLeaderboard(initial),
     tournamentClosed: loadClosed(),
+    tournamentStarted: loadStarted(),
   })
 
   useEffect(() => {
@@ -162,12 +179,18 @@ export function StoreProvider({ children }) {
   }, [state.tournamentClosed])
 
   useEffect(() => {
+    localStorage.setItem(STARTED_KEY, state.tournamentStarted ? 'true' : 'false')
+  }, [state.tournamentStarted])
+
+  useEffect(() => {
     const bc = new BroadcastChannel('wlpt-live')
     bc.onmessage = (e) => {
       if (e.data.type === 'NEW_MATCH') dispatch({ type: 'ADD_MATCH', payload: e.data.match })
       if (e.data.type === 'NEW_MATCHES') dispatch({ type: 'ADD_MATCHES', payload: e.data.matches })
       if (e.data.type === 'TOURNAMENT_CLOSED') dispatch({ type: 'CLOSE_TOURNAMENT' })
       if (e.data.type === 'TOURNAMENT_REOPENED') dispatch({ type: 'REOPEN_TOURNAMENT' })
+      if (e.data.type === 'TOURNAMENT_STARTED') dispatch({ type: 'START_TOURNAMENT' })
+      if (e.data.type === 'TOURNAMENT_RESET') dispatch({ type: 'RESET_TOURNAMENT' })
     }
 
     const onStorage = (e) => {
@@ -180,6 +203,9 @@ export function StoreProvider({ children }) {
       if (e.key === CLOSED_KEY && e.newValue) {
         dispatch({ type: e.newValue === 'true' ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
       }
+      if (e.key === STARTED_KEY && e.newValue) {
+        dispatch({ type: 'SET_STARTED', payload: e.newValue === 'true' })
+      }
     }
     window.addEventListener('storage', onStorage)
 
@@ -188,6 +214,8 @@ export function StoreProvider({ children }) {
       if (stored) dispatch({ type: 'SET_MATCHES', payload: stored })
       const closed = loadClosed()
       dispatch({ type: closed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
+      const started = loadStarted()
+      dispatch({ type: 'SET_STARTED', payload: started })
     }, 5000)
 
     return () => {
@@ -233,8 +261,22 @@ export function StoreProvider({ children }) {
     bc.close()
   }, [])
 
+  const startTournament = useCallback(() => {
+    dispatch({ type: 'START_TOURNAMENT' })
+    const bc = new BroadcastChannel('wlpt-live')
+    bc.postMessage({ type: 'TOURNAMENT_STARTED' })
+    bc.close()
+  }, [])
+
+  const resetTournament = useCallback(() => {
+    dispatch({ type: 'RESET_TOURNAMENT' })
+    const bc = new BroadcastChannel('wlpt-live')
+    bc.postMessage({ type: 'TOURNAMENT_RESET' })
+    bc.close()
+  }, [])
+
   return (
-    <StoreContext.Provider value={{ ...state, addMatch, addMatches, updateMatch, deleteMatch, closeTournament, reopenTournament }}>
+    <StoreContext.Provider value={{ ...state, addMatch, addMatches, updateMatch, deleteMatch, closeTournament, reopenTournament, startTournament, resetTournament }}>
       {children}
     </StoreContext.Provider>
   )
