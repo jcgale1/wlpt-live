@@ -8,6 +8,7 @@ export default function App() {
     <StoreProvider>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/tv" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
