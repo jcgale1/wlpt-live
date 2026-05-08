@@ -34,6 +34,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|version\\.json|assets/|.*\\.(?:js|css|png|jpg|jpeg|svg|woff|woff2|ico|json)).*)", "destination": "/index.html" }
   ]
 }

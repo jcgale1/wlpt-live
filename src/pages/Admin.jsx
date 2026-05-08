@@ -30,13 +30,15 @@ export default function Admin() {
         .then(r => r.json())
         .then(data => {
           if (data && data.buildId && data.buildId !== myBuildId) {
-            window.location.reload()
+            const url = new URL(window.location.href)
+            url.searchParams.set('_v', data.buildId)
+            window.location.replace(url.toString())
           }
         })
         .catch(() => {})
     }
-    const t = setInterval(checkVersion, 60000)
-    setTimeout(checkVersion, 5000)
+    const t = setInterval(checkVersion, 30000)
+    setTimeout(checkVersion, 3000)
     return () => clearInterval(t)
   }, [])
 

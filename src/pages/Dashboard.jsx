@@ -94,14 +94,17 @@ export default function Dashboard() {
         .then(r => r.json())
         .then(data => {
           if (data && data.buildId && data.buildId !== myBuildId) {
-            console.log('[update] New build detected, reloading...', data.buildId, 'vs', myBuildId)
-            window.location.reload()
+            console.log('[update] New build detected, hard-reloading...', data.buildId, 'vs', myBuildId)
+            // Force cache miss by navigating to a URL with a fresh cache-bust param
+            const url = new URL(window.location.href)
+            url.searchParams.set('_v', data.buildId)
+            window.location.replace(url.toString())
           }
         })
         .catch(() => {})
     }
-    const t = setInterval(checkVersion, 60000)
-    setTimeout(checkVersion, 5000)
+    const t = setInterval(checkVersion, 30000)
+    setTimeout(checkVersion, 3000)
     return () => clearInterval(t)
   }, [])
 
