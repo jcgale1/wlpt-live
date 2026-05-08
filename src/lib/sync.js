@@ -62,11 +62,23 @@ export function initSync({ onStateReceived, getState, admin }) {
           if (stateGetter) broadcastState(stateGetter())
         }, 5000)
       } else {
-        // Dashboard requests state immediately + after short delay
-        channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
-        setTimeout(() => {
+        // Dashboard: request state immediately, then poll every 3s
+        const pullState = () => {
+          // Try presence first (persists across reconnects)
+          const presenceState = channel.presenceState()
+          const adminPresence = presenceState['admin']
+          if (adminPresence && adminPresence.length > 0 && adminPresence[0].state) {
+            onStateReceived(adminPresence[0].state)
+          }
+          // Also ask admin to broadcast (belt + suspenders)
           channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
-        }, 2000)
+        }
+        pullState()
+        setTimeout(pullState, 1000)
+        setTimeout(pullState, 3000)
+        // Keep polling every 5s so we always converge
+        if (heartbeat) clearInterval(heartbeat)
+        heartbeat = setInterval(pullState, 5000)
       }
     }
   })
