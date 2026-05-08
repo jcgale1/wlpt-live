@@ -87,6 +87,26 @@ export default function Dashboard() {
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [])
 
+  // Auto-reload when a new deploy is detected
+  useEffect(() => {
+    const myBuildId = typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : null
+    if (!myBuildId) return
+    const checkVersion = () => {
+      fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.buildId && data.buildId !== myBuildId) {
+            console.log('[update] New build detected, reloading...', data.buildId, 'vs', myBuildId)
+            window.location.reload()
+          }
+        })
+        .catch(() => {})
+    }
+    const t = setInterval(checkVersion, 60000)
+    setTimeout(checkVersion, 5000)
+    return () => clearInterval(t)
+  }, [])
+
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen()
