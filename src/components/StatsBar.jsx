@@ -1,9 +1,9 @@
 import { useStore } from '../lib/store.jsx'
 
 export default function StatsBar() {
-  const { matches, playerLeaderboard } = useStore()
-  const totalWinners = playerLeaderboard.reduce((sum, p) => sum + p.winners, 0)
-  const totalDistance = playerLeaderboard.reduce((sum, p) => sum + p.distance, 0)
+  const { matches, leaderboard } = useStore()
+  const totalGames = leaderboard.reduce((sum, t) => sum + t.gamesWon, 0)
+  const teamsPlayed = leaderboard.filter(t => t.matchesPlayed > 0).length
 
   return (
     <div style={{
@@ -17,9 +17,9 @@ export default function StatsBar() {
     }}>
       <Stat label="Matches" value={matches.length} />
       <Divider />
-      <Stat label="Winners" value={totalWinners} color="#4ade80" />
+      <Stat label="Games" value={totalGames} color="#4ade80" />
       <Divider />
-      <Stat label="Distance" value={`${totalDistance.toFixed(1)}km`} color="#60a5fa" />
+      <Stat label="Teams" value={teamsPlayed} color="#60a5fa" />
     </div>
   )
 }

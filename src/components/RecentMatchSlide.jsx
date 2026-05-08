@@ -238,7 +238,7 @@ export default function RecentMatchSlide() {
         </div>
       </motion.div>
 
-      {/* Player stats */}
+      {/* Player avatars only — no stats */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -250,7 +250,6 @@ export default function RecentMatchSlide() {
         }}
       >
         {[...team1.players, ...team2.players].map((name, i) => {
-          const s = statRow(name)
           const isWinnerTeam = (i < 2 && t1Won) || (i >= 2 && !t1Won)
           return (
             <motion.div
@@ -266,27 +265,13 @@ export default function RecentMatchSlide() {
               }}
             >
               <PlayerAvatar name={name} size={28} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{
-                  fontFamily: '"Barlow Condensed"', fontSize: 11, fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: 0.5, color: '#fff',
-                  display: 'block', marginBottom: 3,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {displayName(name)}
-                </span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ fontSize: 11, fontFamily: '"DM Mono"', color: '#4ade80' }}>
-                    {s.winners} <span style={{ fontSize: 7, opacity: 0.6 }}>WNR</span>
-                  </span>
-                  <span style={{ fontSize: 11, fontFamily: '"DM Mono"', color: '#E60150' }}>
-                    {s.errors} <span style={{ fontSize: 7, opacity: 0.6 }}>ERR</span>
-                  </span>
-                  <span style={{ fontSize: 11, fontFamily: '"DM Mono"', color: '#60a5fa' }}>
-                    {(s.distance || 0).toFixed(1)} <span style={{ fontSize: 7, opacity: 0.6 }}>KM</span>
-                  </span>
-                </div>
-              </div>
+              <span style={{
+                fontFamily: '"Barlow Condensed"', fontSize: 12, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: 0.5, color: '#fff',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {displayName(name)}
+              </span>
             </motion.div>
           )
         })}
