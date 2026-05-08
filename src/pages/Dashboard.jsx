@@ -6,42 +6,65 @@ import PlayerCardsSlide from '../components/PlayerCardsSlide.jsx'
 import MatchFeedSlide from '../components/MatchFeedSlide.jsx'
 import BrandingSlide from '../components/BrandingSlide.jsx'
 import PodiumSlide from '../components/PodiumSlide.jsx'
+import RecentMatchSlide from '../components/RecentMatchSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
 
-const LIVE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
-const CLOSED_SLIDES = [PodiumSlide, LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
+const BASE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
 const CLOSED_SLIDE_DURATION = 20000
+const RECENT_MATCH_WINDOW = 10 * 60 * 1000 // 10 minutes
 
 export default function Dashboard() {
-  const { tournamentClosed, leaderboard } = useStore()
-  const slides = tournamentClosed ? CLOSED_SLIDES : LIVE_SLIDES
-  const duration = tournamentClosed ? CLOSED_SLIDE_DURATION : SLIDE_DURATION
+  const { tournamentClosed, leaderboard, matches } = useStore()
+  const [now, setNow] = useState(Date.now())
   const [active, setActive] = useState(0)
   const timerRef = useRef(null)
+  const slidesRef = useRef(null)
 
+  // Tick every 30s so recent-match slide appears/disappears on time
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000)
+    return () => clearInterval(t)
+  }, [])
+
+  // Check if there's a match uploaded in the last 10 minutes
+  const hasRecentMatch = matches.some(m => (now - new Date(m.timestamp).getTime()) < RECENT_MATCH_WINDOW)
+
+  // Build slides array
+  const slides = (() => {
+    const base = [...BASE_SLIDES]
+    if (hasRecentMatch) base.unshift(RecentMatchSlide)
+    if (tournamentClosed) base.unshift(PodiumSlide)
+    return base
+  })()
+  const duration = tournamentClosed ? CLOSED_SLIDE_DURATION : SLIDE_DURATION
+
+  // Reset carousel when slides array changes length
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
-      setActive(prev => (prev + 1) % slides.length)
+      setActive(prev => (prev + 1) % slidesRef.current.length)
     }, duration)
-  }, [slides.length, duration])
+  }, [duration])
+
+  // Keep ref in sync so interval closure always has current slides
+  slidesRef.current = slides
 
   useEffect(() => {
-    setActive(0)
+    setActive(prev => prev >= slides.length ? 0 : prev)
     resetTimer()
     return () => clearInterval(timerRef.current)
-  }, [resetTimer])
+  }, [slides.length, resetTimer])
 
   const goToSlide = useCallback((i) => {
     setActive(i)
     resetTimer()
   }, [resetTimer])
 
-  const ActiveSlide = slides[active]
+  const ActiveSlide = slides[active] || slides[0]
   const [logoPulse, setLogoPulse] = useState(false)
 
   useEffect(() => {
