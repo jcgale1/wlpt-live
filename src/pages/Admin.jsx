@@ -511,6 +511,7 @@ function TournamentControl() {
 
 function MatchEntryForm() {
   const { addMatches } = useStore()
+  const [formKey, setFormKey] = useState(0)
 
   function handleSubmit(match) {
     addMatches([{
@@ -518,6 +519,7 @@ function MatchEntryForm() {
       id: `match-${Date.now()}-0`,
       timestamp: new Date().toISOString(),
     }])
+    setFormKey(k => k + 1)
   }
 
   return (
@@ -529,6 +531,7 @@ function MatchEntryForm() {
         New Match
       </h3>
       <MatchForm
+        key={formKey}
         initial={{ team1Id: '', team2Id: '', team1Score: '', team2Score: '', round: 'Round 1', playerStats: {} }}
         onSubmit={handleSubmit}
         submitLabel="Submit Match"
