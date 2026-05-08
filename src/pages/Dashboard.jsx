@@ -79,6 +79,7 @@ export default function Dashboard() {
 
   const landscape = useIsLandscape()
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const isTvRoute = typeof window !== 'undefined' && window.location.pathname.includes('/tv')
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement)
@@ -115,6 +116,34 @@ export default function Dashboard() {
         background: 'radial-gradient(ellipse at 50% 20%, rgba(230,1,80,0.06) 0%, transparent 60%)',
       }} />
 
+      {isTvRoute && (
+        <div style={{
+          position: 'fixed',
+          top: 12,
+          left: 12,
+          background: 'rgba(230,1,80,0.9)',
+          color: '#fff',
+          fontFamily: '"Barlow Condensed", sans-serif',
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          padding: '6px 12px',
+          borderRadius: 6,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          zIndex: 100,
+          boxShadow: '0 0 12px rgba(230,1,80,0.5)',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="4" width="20" height="14" rx="2" />
+            <line x1="8" y1="22" x2="16" y2="22" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+          </svg>
+          TV
+        </div>
+      )}
       <header style={{
         padding: landscape ? '10px 24px 6px' : '16px 20px 12px',
         display: 'flex',
