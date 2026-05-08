@@ -3,8 +3,10 @@ import { supabase } from './supabase.js'
 const CHANNEL_NAME = 'wlpt-sync'
 let channel = null
 let heartbeat = null
+let reloadTimer = null
 let isAdmin = false
 let stateGetter = null
+let lastReceived = 0
 
 /**
  * Cross-device sync via Supabase Realtime.
@@ -23,7 +25,10 @@ export function initSync({ onStateReceived, getState, admin }) {
 
   // Listen for broadcast state updates
   channel.on('broadcast', { event: 'state_update' }, ({ payload }) => {
-    if (payload) onStateReceived(payload)
+    if (payload) {
+      lastReceived = Date.now()
+      onStateReceived(payload)
+    }
   })
 
   // Listen for state requests (admin responds)
@@ -39,6 +44,7 @@ export function initSync({ onStateReceived, getState, admin }) {
       const presenceState = channel.presenceState()
       const adminPresence = presenceState['admin']
       if (adminPresence && adminPresence.length > 0 && adminPresence[0].state) {
+        lastReceived = Date.now()
         onStateReceived(adminPresence[0].state)
       }
     }
@@ -79,6 +85,14 @@ export function initSync({ onStateReceived, getState, admin }) {
         // Keep polling every 5s so we always converge
         if (heartbeat) clearInterval(heartbeat)
         heartbeat = setInterval(pullState, 5000)
+        // Self-healing: if no state received after 20s, force reload
+        if (reloadTimer) clearTimeout(reloadTimer)
+        reloadTimer = setTimeout(() => {
+          if (lastReceived === 0) {
+            console.warn('[sync] No state received after 20s, reloading...')
+            window.location.reload()
+          }
+        }, 20000)
       }
     }
   })
@@ -109,6 +123,10 @@ export function destroySync() {
   if (heartbeat) {
     clearInterval(heartbeat)
     heartbeat = null
+  }
+  if (reloadTimer) {
+    clearTimeout(reloadTimer)
+    reloadTimer = null
   }
   if (channel) {
     channel.unsubscribe()
