@@ -465,9 +465,9 @@ function TournamentControl() {
   }
 
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div style={{ marginBottom: 24, display: 'flex', gap: 8 }}>
       <button onClick={() => setConfirming('close')} style={{
-        width: '100%', padding: '14px', borderRadius: 12,
+        flex: 1, padding: '14px', borderRadius: 12,
         background: 'linear-gradient(135deg, rgba(250,204,21,0.12), rgba(250,204,21,0.04))',
         border: '1px solid rgba(250,204,21,0.2)',
         color: '#FACC15', fontSize: 15, fontWeight: 700,
@@ -475,8 +475,36 @@ function TournamentControl() {
         letterSpacing: 3, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       }}>
-        🏆 Close Tournament
+        🏆 Close
       </button>
+      {confirming === 'reset-live' ? (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => { resetTournament(); setConfirming(null) }} style={{
+            background: 'rgba(230,1,80,0.2)', border: '1px solid #E60150',
+            color: '#E60150', padding: '14px 16px', borderRadius: 12,
+            fontSize: 11, fontFamily: '"DM Mono", monospace', cursor: 'pointer',
+          }}>
+            Confirm Reset
+          </button>
+          <button onClick={() => setConfirming(null)} style={{
+            background: 'none', border: 'none',
+            color: 'rgba(255,255,255,0.3)', padding: '14px 8px',
+            fontSize: 11, fontFamily: '"DM Mono", monospace', cursor: 'pointer',
+          }}>
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => setConfirming('reset-live')} style={{
+          padding: '14px 16px', borderRadius: 12,
+          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+          color: 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: 600,
+          fontFamily: '"Barlow Condensed", sans-serif', textTransform: 'uppercase',
+          letterSpacing: 2, cursor: 'pointer',
+        }}>
+          Reset
+        </button>
+      )}
     </div>
   )
 }

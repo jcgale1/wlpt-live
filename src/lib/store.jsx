@@ -161,7 +161,7 @@ function loadStarted() {
 export function StoreProvider({ children }) {
   const saved = loadMatches()
   const started = loadStarted()
-  const initial = saved || (started ? [] : generateDummyData())
+  const initial = started ? (saved || []) : []
   const [state, dispatch] = useReducer(reducer, {
     matches: initial,
     leaderboard: buildLeaderboard(initial),
@@ -269,6 +269,9 @@ export function StoreProvider({ children }) {
   }, [])
 
   const resetTournament = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(CLOSED_KEY)
+    localStorage.removeItem(STARTED_KEY)
     dispatch({ type: 'RESET_TOURNAMENT' })
     const bc = new BroadcastChannel('wlpt-live')
     bc.postMessage({ type: 'TOURNAMENT_RESET' })
