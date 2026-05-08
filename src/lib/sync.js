@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 
 const CHANNEL_NAME = 'wlpt-sync'
 let channel = null
+let heartbeat = null
 let isAdmin = false
 let stateGetter = null
 
@@ -55,11 +56,17 @@ export function initSync({ onStateReceived, getState, admin }) {
             tournamentClosed: state.tournamentClosed,
           }
         })
+        // Heartbeat: admin pushes state every 5s so dashboard always catches up
+        if (heartbeat) clearInterval(heartbeat)
+        heartbeat = setInterval(() => {
+          if (stateGetter) broadcastState(stateGetter())
+        }, 5000)
       } else {
-        // Dashboard requests state as backup
+        // Dashboard requests state immediately + after short delay
+        channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
         setTimeout(() => {
           channel.send({ type: 'broadcast', event: 'state_request', payload: {} })
-        }, 500)
+        }, 2000)
       }
     }
   })
@@ -87,6 +94,10 @@ export function requestState() {
 }
 
 export function destroySync() {
+  if (heartbeat) {
+    clearInterval(heartbeat)
+    heartbeat = null
+  }
   if (channel) {
     channel.unsubscribe()
     channel = null
