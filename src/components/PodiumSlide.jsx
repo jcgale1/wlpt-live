@@ -274,10 +274,10 @@ export default function PodiumSlide() {
                         }}>
                           {displayName(name)}
                         </span>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 10, fontFamily: '"DM Mono"', color: '#4ade80' }}>{ps.winners}</span>
-                          <span style={{ fontSize: 10, fontFamily: '"DM Mono"', color: '#E60150' }}>{ps.errors}</span>
-                          <span style={{ fontSize: 10, fontFamily: '"DM Mono"', color: '#60a5fa' }}>{ps.distance.toFixed(1)}</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 10, fontFamily: '"DM Mono"', color: '#4ade80' }}>{ps.winners} <span style={{ fontSize: 7, opacity: 0.6 }}>WNR</span></span>
+                          <span style={{ fontSize: 10, fontFamily: '"DM Mono"', color: '#E60150' }}>{ps.errors} <span style={{ fontSize: 7, opacity: 0.6 }}>ERR</span></span>
+                          <span style={{ fontSize: 10, fontFamily: '"DM Mono"', color: '#60a5fa' }}>{ps.distance.toFixed(1)} <span style={{ fontSize: 7, opacity: 0.6 }}>KM</span></span>
                         </div>
                       </div>
                     )

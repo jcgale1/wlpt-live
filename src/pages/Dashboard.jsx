@@ -8,23 +8,30 @@ import BrandingSlide from '../components/BrandingSlide.jsx'
 import PodiumSlide from '../components/PodiumSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
 import { useStore } from '../lib/store.jsx'
+import { TEAMS } from '../lib/players.js'
+import { displayName } from '../lib/names.js'
 
-const SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
+const LIVE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
+const CLOSED_SLIDES = [PodiumSlide, LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
+const CLOSED_SLIDE_DURATION = 20000
 
 export default function Dashboard() {
-  const { tournamentClosed } = useStore()
+  const { tournamentClosed, leaderboard } = useStore()
+  const slides = tournamentClosed ? CLOSED_SLIDES : LIVE_SLIDES
+  const duration = tournamentClosed ? CLOSED_SLIDE_DURATION : SLIDE_DURATION
   const [active, setActive] = useState(0)
   const timerRef = useRef(null)
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
     timerRef.current = setInterval(() => {
-      setActive(prev => (prev + 1) % SLIDES.length)
-    }, SLIDE_DURATION)
-  }, [])
+      setActive(prev => (prev + 1) % slides.length)
+    }, duration)
+  }, [slides.length, duration])
 
   useEffect(() => {
+    setActive(0)
     resetTimer()
     return () => clearInterval(timerRef.current)
   }, [resetTimer])
@@ -34,25 +41,19 @@ export default function Dashboard() {
     resetTimer()
   }, [resetTimer])
 
-  // Stop carousel when tournament is closed
-  useEffect(() => {
-    if (tournamentClosed && timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    } else if (!tournamentClosed && !timerRef.current) {
-      resetTimer()
-    }
-  }, [tournamentClosed, resetTimer])
-
-  const ActiveSlide = SLIDES[active]
+  const ActiveSlide = slides[active]
   const [logoPulse, setLogoPulse] = useState(false)
 
   useEffect(() => {
-    if (tournamentClosed) return
     setLogoPulse(true)
     const t = setTimeout(() => setLogoPulse(false), 800)
     return () => clearTimeout(t)
-  }, [active, tournamentClosed])
+  }, [active])
+
+  // Get winner team name for badge
+  const winnerTeam = tournamentClosed && leaderboard.length > 0
+    ? TEAMS.find(t => t.id === leaderboard[0].teamId)
+    : null
 
   return (
     <div style={{
@@ -155,6 +156,31 @@ export default function Dashboard() {
         </span>
       </div>
 
+      {tournamentClosed && winnerTeam && (
+        <div style={{
+          textAlign: 'center',
+          padding: '6px 16px 0',
+          position: 'relative',
+          zIndex: 2,
+        }}>
+          <span style={{
+            display: 'inline-block',
+            fontFamily: '"Barlow Condensed", sans-serif',
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: 2,
+            color: '#FACC15',
+            background: 'rgba(250,204,21,0.08)',
+            border: '1px solid rgba(250,204,21,0.2)',
+            borderRadius: 20,
+            padding: '4px 14px',
+          }}>
+            Tournament Ended &middot; Winners: {displayName(winnerTeam.players[0])} & {displayName(winnerTeam.players[1])}
+          </span>
+        </div>
+      )}
+
       <div style={{
         flex: 1,
         display: 'flex',
@@ -166,42 +192,36 @@ export default function Dashboard() {
         minHeight: 0,
         overflow: 'hidden',
       }}>
-        {tournamentClosed ? (
-          <PodiumSlide />
-        ) : (
-          <AnimatePresence mode="wait">
-            <ActiveSlide key={active} />
-          </AnimatePresence>
-        )}
+        <AnimatePresence mode="wait">
+          <ActiveSlide key={active} />
+        </AnimatePresence>
       </div>
 
-      {!tournamentClosed && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 8,
-          padding: '12px 0 6px',
-          position: 'relative',
-          zIndex: 2,
-        }}>
-          {SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goToSlide(i)}
-              style={{
-                width: active === i ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                background: active === i ? '#E60150' : 'rgba(255,255,255,0.15)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                padding: 0,
-              }}
-            />
-          ))}
-        </div>
-      )}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 8,
+        padding: '12px 0 6px',
+        position: 'relative',
+        zIndex: 2,
+      }}>
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goToSlide(i)}
+            style={{
+              width: active === i ? 24 : 8,
+              height: 8,
+              borderRadius: 4,
+              background: active === i ? '#E60150' : 'rgba(255,255,255,0.15)',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              padding: 0,
+            }}
+          />
+        ))}
+      </div>
 
       <footer style={{
         padding: '8px 20px 16px',
