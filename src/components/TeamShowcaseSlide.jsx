@@ -7,7 +7,6 @@ import { useIsLandscape } from '../lib/useMediaQuery.js'
 
 const ROTATE_INTERVAL = 4000
 
-// Per-team image tuning — some AI images need different crop points
 const IMAGE_POSITIONS = {
   'cech-cudicini': 'center 40%',
 }
@@ -24,34 +23,153 @@ export default function TeamShowcaseSlide() {
   const team = TEAMS[index]
   const imgPos = IMAGE_POSITIONS[team.id] || 'center 30%'
 
+  if (landscape) return <LandscapeView team={team} index={index} imgPos={imgPos} />
+  return <PortraitView team={team} index={index} imgPos={imgPos} />
+}
+
+function LandscapeView({ team, index, imgPos }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
+      style={{
+        width: '100%', height: '100%',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '0 24px',
+      }}
+    >
+      <h2 style={{
+        fontFamily: '"Barlow Condensed", sans-serif',
+        fontSize: 30, fontWeight: 700,
+        textTransform: 'uppercase', letterSpacing: 4,
+        color: '#FACC15', textAlign: 'center',
+        margin: '0 0 4px',
+      }}>
+        Today's Line-Up
+      </h2>
+      <span style={{
+        fontFamily: '"DM Mono", monospace', fontSize: 11,
+        color: 'rgba(255,255,255,0.3)', letterSpacing: 2,
+        textTransform: 'uppercase', marginBottom: 16,
+      }}>
+        {index + 1} / {TEAMS.length} pairs
+      </span>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={team.id}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            width: '100%', maxWidth: 860,
+            display: 'flex', flexDirection: 'row',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 20, overflow: 'hidden',
+            minHeight: 280,
+          }}
+        >
+          {/* Hero image — left side, fills height */}
+          <div style={{
+            width: '55%', position: 'relative', flexShrink: 0,
+          }}>
+            <img
+              src={team.image}
+              alt={team.players.join(' & ')}
+              style={{
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: imgPos,
+                display: 'block',
+              }}
+            />
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(90deg, transparent 40%, rgba(4,4,6,0.95) 100%)',
+            }} />
+          </div>
+
+          {/* Info — right side */}
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            justifyContent: 'center', padding: '24px 28px', gap: 16,
+          }}>
+            <span style={{
+              fontFamily: '"Barlow Condensed", sans-serif',
+              fontSize: 26, fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: 2, color: '#fff',
+              lineHeight: 1.2,
+            }}>
+              {displayName(team.players[0])}<br />
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>&</span>{' '}
+              {displayName(team.players[1])}
+            </span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {team.players.map((name, i) => (
+                <motion.div
+                  key={name}
+                  initial={{ opacity: 0, x: 15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.25 + i * 0.12, duration: 0.4 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '10px 14px',
+                    background: 'rgba(255,255,255,0.03)',
+                    borderRadius: 12,
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <PlayerAvatar name={name} size={52} />
+                  <span style={{
+                    fontFamily: '"Barlow Condensed", sans-serif',
+                    fontSize: 18, fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: 1, color: '#fff',
+                  }}>
+                    {displayName(name)}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      <Dots index={index} />
+    </motion.div>
+  )
+}
+
+function PortraitView({ team, index, imgPos }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 16px' }}
+      style={{
+        width: '100%', height: '100%',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', padding: '0 16px',
+      }}
     >
       <h2 style={{
         fontFamily: '"Barlow Condensed", sans-serif',
-        fontSize: landscape ? 32 : 24,
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: 3,
-        color: '#FACC15',
-        textAlign: 'center',
+        fontSize: 24, fontWeight: 700,
+        textTransform: 'uppercase', letterSpacing: 3,
+        color: '#FACC15', textAlign: 'center',
         margin: '0 0 6px',
       }}>
         Today's Line-Up
       </h2>
-
       <span style={{
-        fontFamily: '"DM Mono", monospace',
-        fontSize: 10,
-        color: 'rgba(255,255,255,0.3)',
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-        marginBottom: landscape ? 20 : 16,
+        fontFamily: '"DM Mono", monospace', fontSize: 10,
+        color: 'rgba(255,255,255,0.3)', letterSpacing: 2,
+        textTransform: 'uppercase', marginBottom: 16,
       }}>
         {index + 1} / {TEAMS.length} pairs
       </span>
@@ -64,78 +182,39 @@ export default function TeamShowcaseSlide() {
           exit={{ opacity: 0, scale: 0.95, y: -10 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            width: '100%',
-            maxWidth: landscape ? 700 : 360,
+            width: '100%', maxWidth: 360,
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
-            overflow: 'hidden',
-            display: landscape ? 'flex' : 'block',
-            flexDirection: landscape ? 'row' : undefined,
+            borderRadius: 16, overflow: 'hidden',
           }}
         >
-          {/* Hero image */}
-          <div style={{
-            position: 'relative',
-            height: landscape ? 'auto' : 180,
-            width: landscape ? '55%' : '100%',
-            minHeight: landscape ? 220 : undefined,
-            flexShrink: 0,
-          }}>
+          <div style={{ position: 'relative', height: 180 }}>
             <img
               src={team.image}
               alt={team.players.join(' & ')}
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: imgPos,
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: imgPos,
                 display: 'block',
               }}
             />
             <div style={{
               position: 'absolute', inset: 0,
-              background: landscape
-                ? 'linear-gradient(90deg, transparent 50%, rgba(4,4,6,0.9) 100%)'
-                : 'linear-gradient(180deg, transparent 40%, rgba(4,4,6,0.9) 100%)',
+              background: 'linear-gradient(180deg, transparent 40%, rgba(4,4,6,0.9) 100%)',
             }} />
-            {!landscape && (
-              <div style={{
-                position: 'absolute', bottom: 12, left: 14, right: 14,
-              }}>
-                <span style={{
-                  fontFamily: '"Barlow Condensed", sans-serif',
-                  fontSize: 20, fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: 1.5,
-                  color: '#fff',
-                  textShadow: '0 2px 8px rgba(0,0,0,0.6)',
-                }}>
-                  {displayName(team.players[0])} & {displayName(team.players[1])}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Player cards */}
-          <div style={{
-            display: 'flex',
-            flexDirection: landscape ? 'column' : 'row',
-            padding: landscape ? '20px 24px' : '14px 12px',
-            gap: landscape ? 14 : 10,
-            flex: landscape ? 1 : undefined,
-            justifyContent: 'center',
-          }}>
-            {landscape && (
+            <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14 }}>
               <span style={{
                 fontFamily: '"Barlow Condensed", sans-serif',
-                fontSize: 22, fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: 2,
-                color: '#fff',
-                marginBottom: 4,
+                fontSize: 20, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: 1.5,
+                color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6)',
               }}>
                 {displayName(team.players[0])} & {displayName(team.players[1])}
               </span>
-            )}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', padding: '14px 12px', gap: 10 }}>
             {team.players.map((name, i) => (
               <motion.div
                 key={name}
@@ -143,22 +222,17 @@ export default function TeamShowcaseSlide() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
                 style={{
-                  flex: landscape ? undefined : 1,
-                  display: 'flex',
-                  flexDirection: landscape ? 'row' : 'column',
-                  alignItems: 'center',
-                  gap: landscape ? 14 : 6,
-                  padding: landscape ? '10px 14px' : '10px 0',
-                  background: 'rgba(255,255,255,0.02)',
-                  borderRadius: 10,
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 6, padding: '10px 0',
+                  background: 'rgba(255,255,255,0.02)', borderRadius: 10,
                 }}
               >
-                <PlayerAvatar name={name} size={landscape ? 56 : 48} />
+                <PlayerAvatar name={name} size={48} />
                 <span style={{
                   fontFamily: '"Barlow Condensed", sans-serif',
-                  fontSize: landscape ? 16 : 13, fontWeight: 700,
+                  fontSize: 13, fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: 0.5,
-                  color: '#fff', textAlign: landscape ? 'left' : 'center',
+                  color: '#fff', textAlign: 'center',
                 }}>
                   {displayName(name)}
                 </span>
@@ -168,18 +242,22 @@ export default function TeamShowcaseSlide() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Team dots */}
-      <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
-        {TEAMS.map((t, i) => (
-          <div key={t.id} style={{
-            width: i === index ? 18 : 6,
-            height: 6,
-            borderRadius: 3,
-            background: i === index ? '#E60150' : 'rgba(255,255,255,0.15)',
-            transition: 'all 0.3s ease',
-          }} />
-        ))}
-      </div>
+      <Dots index={index} />
     </motion.div>
+  )
+}
+
+function Dots({ index }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+      {TEAMS.map((t, i) => (
+        <div key={t.id} style={{
+          width: i === index ? 18 : 6,
+          height: 6, borderRadius: 3,
+          background: i === index ? '#E60150' : 'rgba(255,255,255,0.15)',
+          transition: 'all 0.3s ease',
+        }} />
+      ))}
+    </div>
   )
 }

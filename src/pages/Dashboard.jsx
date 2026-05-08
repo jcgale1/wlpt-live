@@ -15,9 +15,9 @@ import { displayName } from '../lib/names.js'
 import { useIsLandscape } from '../lib/useMediaQuery.js'
 
 const BASE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
-const PRE_SLIDES = [TeamShowcaseSlide, BrandingSlide]
+const PRE_SLIDES = [TeamShowcaseSlide, TeamShowcaseSlide, TeamShowcaseSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
-const PRE_SLIDE_DURATION = 16000
+const PRE_SLIDE_DURATION = 10000
 const CLOSED_SLIDE_DURATION = 20000
 
 export default function Dashboard() {
