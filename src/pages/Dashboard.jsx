@@ -6,7 +6,7 @@ import PlayerCardsSlide from '../components/PlayerCardsSlide.jsx'
 import MatchFeedSlide from '../components/MatchFeedSlide.jsx'
 import BrandingSlide from '../components/BrandingSlide.jsx'
 import PodiumSlide from '../components/PodiumSlide.jsx'
-import RecentMatchSlide from '../components/RecentMatchSlide.jsx'
+import RecentMatchSlide, { hasSpotlightMatch } from '../components/RecentMatchSlide.jsx'
 import StatsBar from '../components/StatsBar.jsx'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
@@ -15,7 +15,6 @@ import { displayName } from '../lib/names.js'
 const BASE_SLIDES = [LeaderboardSlide, IndividualLeaderboardSlide, PlayerCardsSlide, MatchFeedSlide, BrandingSlide]
 const SLIDE_DURATION = 14000
 const CLOSED_SLIDE_DURATION = 20000
-const RECENT_MATCH_WINDOW = 10 * 60 * 1000 // 10 minutes
 
 export default function Dashboard() {
   const { tournamentClosed, leaderboard, matches } = useStore()
@@ -30,8 +29,8 @@ export default function Dashboard() {
     return () => clearInterval(t)
   }, [])
 
-  // Check if there's a match uploaded in the last 10 minutes
-  const hasRecentMatch = matches.some(m => (now - new Date(m.timestamp).getTime()) < RECENT_MATCH_WINDOW)
+  // Check if any match is currently in its spotlight window
+  const hasRecentMatch = hasSpotlightMatch(matches)
 
   // Build slides array
   const slides = (() => {

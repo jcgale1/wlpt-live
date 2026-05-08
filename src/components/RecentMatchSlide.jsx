@@ -1,21 +1,78 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { TEAMS } from '../lib/players.js'
 import { displayName } from '../lib/names.js'
 import PlayerAvatar from './PlayerAvatar.jsx'
 
+const SPOTLIGHT_DURATION = 10 * 60 * 1000 // 10 min per match
+
+/**
+ * Returns the match currently in the spotlight.
+ * Matches queue by upload order — each gets a dedicated 10-min window.
+ * e.g. 3 matches uploaded at 14:00 → match1 14:00-14:10, match2 14:10-14:20, match3 14:20-14:30
+ */
+function getSpotlightMatch(matches) {
+  // Sort by timestamp ascending (upload order)
+  const sorted = [...matches].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+  const now = Date.now()
+
+  // Find matches that haven't had their full spotlight yet
+  // Walk through in order, each one's window starts when the previous one's ends
+  let windowStart = null
+  for (const m of sorted) {
+    const uploaded = new Date(m.timestamp).getTime()
+    // This match's window starts at whichever is later: its upload time, or the end of the previous match's window
+    const start = windowStart ? Math.max(uploaded, windowStart) : uploaded
+    const end = start + SPOTLIGHT_DURATION
+
+    if (now >= start && now < end) {
+      return { match: m, queuePosition: sorted.indexOf(m) + 1, queueTotal: countQueued(sorted, now) }
+    }
+
+    windowStart = end
+  }
+
+  return null
+}
+
+function countQueued(sorted, now) {
+  let windowStart = null
+  let count = 0
+  for (const m of sorted) {
+    const uploaded = new Date(m.timestamp).getTime()
+    const start = windowStart ? Math.max(uploaded, windowStart) : uploaded
+    const end = start + SPOTLIGHT_DURATION
+    if (end > now) count++
+    windowStart = end
+  }
+  return count
+}
+
+export function hasSpotlightMatch(matches) {
+  return getSpotlightMatch(matches) !== null
+}
+
 export default function RecentMatchSlide() {
-  const { matches, playerLeaderboard } = useStore()
-  const sorted = [...matches].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-  const match = sorted[0]
+  const { matches } = useStore()
+  const [now, setNow] = useState(Date.now())
 
-  if (!match) return null
+  // Tick every 10s so spotlight transitions happen on time
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 10000)
+    return () => clearInterval(t)
+  }, [])
 
+  const spotlight = getSpotlightMatch(matches)
+  if (!spotlight) return null
+
+  const { match, queuePosition, queueTotal } = spotlight
   const team1 = TEAMS.find(t => t.id === match.team1Id)
   const team2 = TEAMS.find(t => t.id === match.team2Id)
   if (!team1 || !team2) return null
 
   const t1Won = match.winner === match.team1Id
+  const queueLabel = queueTotal > 1 ? `${queuePosition} / ${queueTotal}` : null
 
   function statRow(name) {
     const s = match.playerStats?.[name] || { winners: 0, errors: 0, distance: 0 }
@@ -46,7 +103,7 @@ export default function RecentMatchSlide() {
           padding: '3px 12px',
           marginBottom: 6,
         }}>
-          Latest Result
+          Latest Result{queueLabel ? ` · ${queueLabel}` : ''}
         </span>
         <p style={{
           fontFamily: '"Barlow Condensed", sans-serif',
