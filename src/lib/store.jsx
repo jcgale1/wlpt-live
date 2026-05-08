@@ -1,5 +1,6 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
 import { TEAMS, ALL_PLAYERS } from './players.js'
+import { initSync, broadcastState, requestState, destroySync } from './sync.js'
 
 const StoreContext = createContext()
 const CLOSED_KEY = 'wlpt-tournament-closed'
@@ -95,7 +96,10 @@ function reducer(state, action) {
   switch (action.type) {
     case 'SET_MATCHES': {
       const deduped = action.payload.filter((m, i, arr) => arr.findIndex(x => x.id === m.id) === i)
-      if (deduped.length === state.matches.length) return state
+      // Check if actually different (by id set + count)
+      const oldIds = new Set(state.matches.map(m => m.id))
+      const newIds = new Set(deduped.map(m => m.id))
+      if (deduped.length === state.matches.length && [...newIds].every(id => oldIds.has(id))) return state
       return { ...state, matches: deduped, leaderboard: buildLeaderboard(deduped), playerLeaderboard: buildPlayerLeaderboard(deduped) }
     }
     case 'ADD_MATCH': {
@@ -224,6 +228,50 @@ export function StoreProvider({ children }) {
       clearInterval(poll)
     }
   }, [])
+
+  // Cross-device sync via Supabase Realtime
+  const stateRef = useRef(state)
+  stateRef.current = state
+  const isAdmin = typeof window !== 'undefined' && window.location.pathname.includes('admin')
+
+  useEffect(() => {
+    const channel = initSync((payload) => {
+      // Incoming state from another device
+      if (payload.matches) {
+        dispatch({ type: 'SET_MATCHES', payload: payload.matches })
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.matches))
+      }
+      if (typeof payload.tournamentStarted === 'boolean') {
+        dispatch({ type: 'SET_STARTED', payload: payload.tournamentStarted })
+        localStorage.setItem(STARTED_KEY, payload.tournamentStarted ? 'true' : 'false')
+      }
+      if (typeof payload.tournamentClosed === 'boolean') {
+        dispatch({ type: payload.tournamentClosed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
+        localStorage.setItem(CLOSED_KEY, payload.tournamentClosed ? 'true' : 'false')
+      }
+    })
+
+    // Dashboard requests current state on load
+    if (!isAdmin) {
+      setTimeout(() => requestState(), 1000)
+    }
+
+    // Admin responds to state requests
+    if (isAdmin) {
+      channel.on('broadcast', { event: 'state_request' }, () => {
+        broadcastState(stateRef.current)
+      })
+    }
+
+    return () => destroySync()
+  }, [isAdmin])
+
+  // Admin broadcasts on every state change
+  useEffect(() => {
+    if (isAdmin) {
+      broadcastState(state)
+    }
+  }, [state.matches, state.tournamentStarted, state.tournamentClosed, isAdmin])
 
   const addMatch = useCallback((match) => {
     dispatch({ type: 'ADD_MATCH', payload: match })
