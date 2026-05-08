@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
 import { TEAMS, ALL_PLAYERS } from './players.js'
-import { initSync, broadcastState, requestState, destroySync } from './sync.js'
+import { initSync, broadcastState, destroySync } from './sync.js'
 
 const StoreContext = createContext()
 const CLOSED_KEY = 'wlpt-tournament-closed'
@@ -235,34 +235,24 @@ export function StoreProvider({ children }) {
   const isAdmin = typeof window !== 'undefined' && window.location.pathname.includes('admin')
 
   useEffect(() => {
-    const channel = initSync((payload) => {
-      // Incoming state from another device
-      if (payload.matches) {
-        dispatch({ type: 'SET_MATCHES', payload: payload.matches })
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.matches))
-      }
-      if (typeof payload.tournamentStarted === 'boolean') {
-        dispatch({ type: 'SET_STARTED', payload: payload.tournamentStarted })
-        localStorage.setItem(STARTED_KEY, payload.tournamentStarted ? 'true' : 'false')
-      }
-      if (typeof payload.tournamentClosed === 'boolean') {
-        dispatch({ type: payload.tournamentClosed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
-        localStorage.setItem(CLOSED_KEY, payload.tournamentClosed ? 'true' : 'false')
-      }
+    initSync({
+      admin: isAdmin,
+      getState: () => stateRef.current,
+      onStateReceived: (payload) => {
+        if (payload.matches) {
+          dispatch({ type: 'SET_MATCHES', payload: payload.matches })
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.matches))
+        }
+        if (typeof payload.tournamentStarted === 'boolean') {
+          dispatch({ type: 'SET_STARTED', payload: payload.tournamentStarted })
+          localStorage.setItem(STARTED_KEY, payload.tournamentStarted ? 'true' : 'false')
+        }
+        if (typeof payload.tournamentClosed === 'boolean') {
+          dispatch({ type: payload.tournamentClosed ? 'CLOSE_TOURNAMENT' : 'REOPEN_TOURNAMENT' })
+          localStorage.setItem(CLOSED_KEY, payload.tournamentClosed ? 'true' : 'false')
+        }
+      },
     })
-
-    // Dashboard requests current state on load
-    if (!isAdmin) {
-      setTimeout(() => requestState(), 1000)
-    }
-
-    // Admin responds to state requests
-    if (isAdmin) {
-      channel.on('broadcast', { event: 'state_request' }, () => {
-        broadcastState(stateRef.current)
-      })
-    }
-
     return () => destroySync()
   }, [isAdmin])
 
