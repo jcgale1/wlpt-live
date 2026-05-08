@@ -108,6 +108,14 @@ function reducer(state, action) {
       const matches = [...state.matches, ...newMatches]
       return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
     }
+    case 'UPDATE_MATCH': {
+      const matches = state.matches.map(m => m.id === action.payload.id ? action.payload : m)
+      return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
+    }
+    case 'DELETE_MATCH': {
+      const matches = state.matches.filter(m => m.id !== action.payload)
+      return { ...state, matches, leaderboard: buildLeaderboard(matches), playerLeaderboard: buildPlayerLeaderboard(matches) }
+    }
     default:
       return state
   }
@@ -182,8 +190,16 @@ export function StoreProvider({ children }) {
     bc.close()
   }, [])
 
+  const updateMatch = useCallback((match) => {
+    dispatch({ type: 'UPDATE_MATCH', payload: match })
+  }, [])
+
+  const deleteMatch = useCallback((matchId) => {
+    dispatch({ type: 'DELETE_MATCH', payload: matchId })
+  }, [])
+
   return (
-    <StoreContext.Provider value={{ ...state, addMatch, addMatches }}>
+    <StoreContext.Provider value={{ ...state, addMatch, addMatches, updateMatch, deleteMatch }}>
       {children}
     </StoreContext.Provider>
   )
