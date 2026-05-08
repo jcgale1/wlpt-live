@@ -21,6 +21,25 @@ export default function Admin() {
     return () => sub.subscription.unsubscribe()
   }, [])
 
+  // Auto-reload when a new deploy is detected
+  useEffect(() => {
+    const myBuildId = typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : null
+    if (!myBuildId) return
+    const checkVersion = () => {
+      fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.buildId && data.buildId !== myBuildId) {
+            window.location.reload()
+          }
+        })
+        .catch(() => {})
+    }
+    const t = setInterval(checkVersion, 60000)
+    setTimeout(checkVersion, 5000)
+    return () => clearInterval(t)
+  }, [])
+
   if (loading) return <Shell><p style={{ color: 'rgba(255,255,255,0.4)' }}>Loading...</p></Shell>
   if (!session) return <Shell><LoginForm /></Shell>
 
@@ -52,12 +71,24 @@ export default function Admin() {
 }
 
 function Shell({ children }) {
+  const buildVersion = typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : 'dev'
   return (
     <div style={{
       minHeight: '100dvh', width: '100%',
       background: 'linear-gradient(180deg, #040406 0%, #0a0a1a 100%)',
       color: '#fff', padding: '20px 16px',
     }}>
+      <div style={{
+        position: 'fixed', top: 12, right: 12,
+        background: 'rgba(230,1,80,0.85)', color: '#fff',
+        fontFamily: '"DM Mono", monospace', fontSize: 10,
+        fontWeight: 700, letterSpacing: 1,
+        padding: '4px 9px', borderRadius: 6,
+        zIndex: 100,
+        boxShadow: '0 0 10px rgba(230,1,80,0.4)',
+      }}>
+        ADMIN v{buildVersion}
+      </div>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
           <img src="/logos/padx-logo-white.svg" alt="PadX" style={{ height: 18, opacity: 0.6 }} />
